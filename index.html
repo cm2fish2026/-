@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskFlow — 任务管理</title>
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;TaskFlow&quot;,&quot;short_name&quot;:&quot;TaskFlow&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0F0E0C&quot;,&quot;theme_color&quot;:&quot;#534AB7&quot;}">
+<meta name="theme-color" content="#0F0E0C">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0F0E0C;
+  --surface: #1A1917;
+  --surface2: #242320;
+  --surface3: #2E2D2A;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #F2F0EB;
+  --text2: #9B9890;
+  --text3: #5A5955;
+  --accent: #7B72E0;
+  --accent-light: rgba(123,114,224,0.15);
+  --accent-mid: rgba(123,114,224,0.4);
+  --red: #E07060; --red-bg: rgba(224,112,96,0.15);
+  --amber: #D4A044; --amber-bg: rgba(212,160,68,0.15);
+  --green: #6BBF5A; --green-bg: rgba(107,191,90,0.15);
+  --danger: #E05050; --danger-bg: rgba(224,80,80,0.15);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* Layout */
+.layout { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: 220px; flex-shrink: 0; background: var(--surface);
+  border-right: 1px solid var(--border); padding: 24px 16px;
+  display: flex; flex-direction: column; gap: 8px;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.logo { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 16px; padding: 0 8px; letter-spacing: -0.3px; }
+.logo span { color: var(--accent); }
+.nav-section { font-size: 10px; font-weight: 600; color: var(--text3); letter-spacing: 1px; text-transform: uppercase; padding: 8px 8px 4px; margin-top: 8px; }
+.nav-btn {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  padding: 8px 10px; border-radius: var(--radius-sm);
+  border: none; background: transparent; color: var(--text2);
+  font-size: 13px; font-family: inherit; cursor: pointer; text-align: left;
+  transition: all 0.12s;
+}
+.nav-btn:hover { background: var(--surface2); color: var(--text); }
+.nav-btn.active { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+.nav-icon { font-size: 14px; width: 18px; text-align: center; }
+.nav-count { margin-left: auto; font-size: 11px; background: var(--surface3); color: var(--text3); padding: 1px 7px; border-radius: 10px; }
+.nav-count.warn { background: var(--danger-bg); color: var(--danger); }
+
+.sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+.export-btn {
+  width: 100%; padding: 8px 10px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border2); background: transparent; color: var(--text2);
+  font-size: 12px; font-family: inherit; cursor: pointer; text-align: center;
+  transition: all 0.12s;
+}
+.export-btn:hover { background: var(--surface2); color: var(--text); }
+
+/* Main */
+.main { flex: 1; padding: 28px 32px; max-width: 800px; min-width: 0; }
+
+.main-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+.page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; }
+.page-date { font-size: 12px; color: var(--text3); margin-top: 4px; }
+.header-right { display: flex; gap: 8px; align-items: center; }
+.pill { font-size: 11px; padding: 4px 11px; border-radius: 20px; font-weight: 500; }
+.p-done { background: var(--green-bg); color: var(--green); }
+.p-over { background: var(--danger-bg); color: var(--danger); }
+
+/* Progress */
+.progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.progress-bar { flex: 1; height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+.progress-label { font-size: 12px; color: var(--text3); white-space: nowrap; min-width: 60px; text-align: right; }
+
+/* Input */
+.input-card {
+  background: var(--surface); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 16px; margin-bottom: 20px;
+}
+.task-input {
+  width: 100%; height: 42px; padding: 0 14px;
+  border: 1px solid var(--border2); border-radius: var(--radius-sm);
+  font-size: 15px; font-family: inherit; background: var(--surface2); color: var(--text);
+  outline: none; margin-bottom: 10px; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.task-input::placeholder { color: var(--text3); }
+.task-input:focus { border-color: var(--accent-mid); box-shadow: 0 0 0 3px var(--accent-light); }
+.input-row2 { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.sel, .date-in {
+  height: 32px; padding: 0 10px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 13px; font-family: inherit; background: var(--surface2); color: var(--text);
+  outline: none; cursor: pointer;
+}
+.add-btn {
+  height: 32px; padding: 0 20px; border-radius: var(--radius-sm);
+  border: none; background: var(--accent); color: #fff;
+  font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+  margin-left: auto; transition: all 0.12s;
+}
+.add-btn:hover { filter: brightness(1.15); }
+.add-btn:active { transform: scale(0.97); }
+
+/* Sort bar */
+.sort-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.sort-label { font-size: 12px; color: var(--text3); }
+.sort-sel {
+  height: 28px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 12px; font-family: inherit; background: var(--surface); color: var(--text2);
+  outline: none; cursor: pointer; margin-left: auto;
+}
+.task-count-label { font-size: 12px; color: var(--text3); }
+
+/* Tasks */
+.task-list { display: flex; flex-direction: column; gap: 6px; }
+.task-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 14px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); transition: border-color 0.15s, background 0.15s, opacity 0.2s;
+  cursor: grab; animation: slideIn 0.18s ease;
+}
+@keyframes slideIn { from { opacity:0; transform: translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+.task-item:hover { border-color: var(--border2); }
+.task-item.done { opacity: 0.4; }
+.task-item.dragging { opacity: 0.3; }
+.task-item.drag-over { border-color: var(--accent); background: var(--accent-light); }
+.drag-handle { color: var(--text3); font-size: 13px; padding-top: 3px; cursor: grab; flex-shrink: 0; }
+
+.check-btn {
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid var(--border2); background: transparent;
+  cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  margin-top: 2px; transition: all 0.15s;
+}
+.check-btn:hover { border-color: var(--green); }
+.check-btn.checked { background: var(--green); border-color: var(--green); }
+.check-btn.checked::after { content:''; display:block; width:10px; height:6px; border-left:2px solid #0F0E0C; border-bottom:2px solid #0F0E0C; transform:rotate(-45deg) translateY(-2px); }
+
+.task-body { flex: 1; min-width: 0; }
+.task-text { font-size: 14px; color: var(--text); line-height: 1.5; word-break: break-word; }
+.task-text.done { text-decoration: line-through; color: var(--text3); }
+.task-note { font-size: 12px; color: var(--text3); margin-top: 3px; }
+.task-meta { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; align-items: center; }
+.badge { font-size: 11px; padding: 2px 8px; border-radius: 8px; font-weight: 500; }
+.b-high { background: var(--red-bg); color: var(--red); }
+.b-medium { background: var(--amber-bg); color: var(--amber); }
+.b-low { background: var(--green-bg); color: var(--green); }
+.b-tag { background: var(--accent-light); color: var(--accent); }
+.b-date-ok { background: var(--surface3); color: var(--text2); }
+.b-date-soon { background: var(--amber-bg); color: var(--amber); }
+.b-date-over { background: var(--danger-bg); color: var(--danger); }
+
+.task-actions { display: flex; gap: 2px; flex-shrink: 0; }
+.icon-btn {
+  width: 28px; height: 28px; border-radius: var(--radius-sm);
+  border: none; background: transparent; color: var(--text3);
+  cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;
+  transition: all 0.12s;
+}
+.icon-btn:hover { background: var(--surface2); color: var(--text); }
+.del-btn:hover { background: var(--danger-bg) !important; color: var(--danger) !important; }
+
+.empty { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 14px; }
+
+/* Modal */
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center; z-index: 200;
+  backdrop-filter: blur(4px); animation: fadeIn 0.15s ease;
+}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.modal {
+  background: var(--surface); border-radius: var(--radius);
+  border: 1px solid var(--border2); padding: 24px;
+  width: 92%; max-width: 420px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  animation: slideUp 0.2s ease;
+}
+@keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.modal-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+.modal label { font-size: 11px; color: var(--text3); display: block; margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.modal input[type=text],.modal input[type=date],.modal select,.modal textarea {
+  width: 100%; padding: 8px 12px;
+  border: 1px solid var(--border2); border-radius: var(--radius-sm);
+  font-size: 14px; font-family: inherit; background: var(--surface2); color: var(--text);
+  outline: none; transition: border-color 0.15s;
+}
+.modal input:focus,.modal select:focus,.modal textarea:focus { border-color: var(--accent-mid); }
+.modal textarea { height: 72px; resize: none; }
+.modal select option { background: var(--surface2); }
+.modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.btn-cancel { height: 34px; padding: 0 16px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: transparent; color: var(--text2); font-size: 13px; font-family: inherit; cursor: pointer; }
+.btn-save { height: 34px; padding: 0 18px; border-radius: var(--radius-sm); border: none; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .sidebar { display: none; }
+  .main { padding: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo">Task<span>Flow</span></div>
+
+    <div class="nav-section">视图</div>
+    <button class="nav-btn active" onclick="setFilter('all',this)">
+      <span class="nav-icon">📋</span> 全部任务
+      <span class="nav-count" id="nc-all">0</span>
+    </button>
+    <button class="nav-btn" onclick="setFilter('active',this)">
+      <span class="nav-icon">⚡</span> 进行中
+      <span class="nav-count" id="nc-active">0</span>
+    </button>
+    <button class="nav-btn" onclick="setFilter('today',this)">
+      <span class="nav-icon">📅</span> 今天到期
+      <span class="nav-count" id="nc-today">0</span>
+    </button>
+    <button class="nav-btn" onclick="setFilter('overdue',this)">
+      <span class="nav-icon">⚠️</span> 已逾期
+      <span class="nav-count warn" id="nc-over">0</span>
+    </button>
+    <button class="nav-btn" onclick="setFilter('done',this)">
+      <span class="nav-icon">✅</span> 已完成
+      <span class="nav-count" id="nc-done">0</span>
+    </button>
+
+    <div class="nav-section">标签</div>
+    <button class="nav-btn" onclick="setTagFilter('工作',this)"><span class="nav-icon">💼</span> 工作</button>
+    <button class="nav-btn" onclick="setTagFilter('个人',this)"><span class="nav-icon">🏠</span> 个人</button>
+    <button class="nav-btn" onclick="setTagFilter('学习',this)"><span class="nav-icon">📚</span> 学习</button>
+    <button class="nav-btn" onclick="setTagFilter('购物',this)"><span class="nav-icon">🛒</span> 购物</button>
+
+    <div class="sidebar-footer">
+      <button class="export-btn" onclick="exportJSON()">⬇ 导出数据 (JSON)</button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="main-header">
+      <div>
+        <div class="page-title" id="page-title">全部任务</div>
+        <div class="page-date" id="page-date"></div>
+      </div>
+      <div class="header-right">
+        <span class="pill p-done" id="hd-done">0 已完成</span>
+        <span class="pill p-over" id="hd-over" style="display:none"></span>
+      </div>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="progress-label" id="progress-label">0%</div>
+    </div>
+
+    <div class="input-card">
+      <input class="task-input" id="task-input" type="text" placeholder="输入新任务，按 Enter 快速添加…" />
+      <div class="input-row2">
+        <select class="sel" id="pri-sel">
+          <option value="high">🔴 高优先级</option>
+          <option value="medium" selected>🟡 中优先级</option>
+          <option value="low">🟢 低优先级</option>
+        </select>
+        <select class="sel" id="tag-sel">
+          <option value="">无标签</option>
+          <option value="工作">💼 工作</option>
+          <option value="个人">🏠 个人</option>
+          <option value="学习">📚 学习</option>
+          <option value="购物">🛒 购物</option>
+        </select>
+        <input class="date-in" type="date" id="date-input" />
+        <button class="add-btn" onclick="addTask()">+ 添加</button>
+      </div>
+    </div>
+
+    <div class="sort-bar">
+      <span class="task-count-label" id="task-count-label"></span>
+      <select class="sort-sel" id="sort-sel" onchange="render()">
+        <option value="manual">手动排序</option>
+        <option value="priority">按优先级</option>
+        <option value="date">按截止日期</option>
+        <option value="created">按创建时间</option>
+      </select>
+    </div>
+
+    <div class="task-list" id="task-list"></div>
+  </main>
+</div>
+
+<script>
+const STORAGE_KEY = 'taskflow_web_v1';
+const priOrder = {high:0,medium:1,low:2};
+const priLabel = {high:'高优先级',medium:'中优先级',low:'低优先级'};
+const tagIcon = {'工作':'💼','个人':'🏠','学习':'📚','购物':'🛒'};
+const filterLabel = {all:'全部任务',active:'进行中',today:'今天到期',overdue:'已逾期',done:'已完成'};
+let tasks=[], nextId=1, currentFilter='all', tagFilter=null, dragSrc=null;
+
+function today(){ return new Date().toISOString().slice(0,10); }
+function tomorrow(){ const d=new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); }
+function dateStatus(due){ if(!due) return null; const t=today(); if(due<t) return 'over'; if(due===t) return 'soon'; return 'ok'; }
+function fmtDate(due){
+  if(!due) return '';
+  const t=today();
+  if(due===t) return '⏰ 今天到期';
+  if(due===tomorrow()) return '📅 明天到期';
+  if(due<t){ const[,m,d]=due.split('-'); return `⚠ ${m}/${d} 已逾期`; }
+  const[,m,d]=due.split('-'); return `📅 ${m}/${d} 到期`;
+}
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function load(){
+  try{ const raw=localStorage.getItem(STORAGE_KEY); if(raw){ const d=JSON.parse(raw); tasks=d.tasks||[]; nextId=d.nextId||(tasks.length?Math.max(...tasks.map(t=>t.id))+1:1); } }catch(e){}
+  if(!tasks.length){
+    tasks=[
+      {id:nextId++,text:'完成项目需求文档',priority:'high',tag:'工作',due:'',done:false,note:'需要包含用户故事和验收标准',order:3},
+      {id:nextId++,text:'和团队开周会',priority:'medium',tag:'工作',due:today(),done:false,note:'',order:2},
+      {id:nextId++,text:'回复客户邮件',priority:'high',tag:'工作',due:'',done:true,note:'',order:1},
+      {id:nextId++,text:'整理本周学习笔记',priority:'low',tag:'学习',due:tomorrow(),done:false,note:'',order:0},
+    ];
+  }
+}
+
+function save(){ try{ localStorage.setItem(STORAGE_KEY,JSON.stringify({tasks,nextId})); }catch(e){} }
+
+function addTask(){
+  const input=document.getElementById('task-input');
+  const text=input.value.trim(); if(!text){ input.focus(); return; }
+  const pri=document.getElementById('pri-sel').value;
+  const tag=document.getElementById('tag-sel').value;
+  const due=document.getElementById('date-input').value;
+  const maxOrder=tasks.length?Math.max(...tasks.map(t=>t.order||0)):-1;
+  tasks.unshift({id:nextId++,text,priority:pri,tag,due,done:false,note:'',order:maxOrder+1});
+  input.value=''; input.focus(); save(); render();
+}
+
+function toggleTask(id){ const t=tasks.find(t=>t.id===id); if(t){ t.done=!t.done; save(); render(); } }
+function deleteTask(id){ tasks=tasks.filter(t=>t.id!==id); save(); render(); }
+
+function setFilter(f,btn){
+  currentFilter=f; tagFilter=null;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('page-title').textContent=filterLabel[f]||'全部任务';
+  render();
+}
+function setTagFilter(tag,btn){
+  tagFilter=tag; currentFilter='all';
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('page-title').textContent=(tagIcon[tag]||'')+' '+tag;
+  render();
+}
+
+function getFiltered(){
+  const t=today(); let list=[...tasks];
+  if(tagFilter) list=list.filter(x=>x.tag===tagFilter);
+  else if(currentFilter==='active') list=list.filter(x=>!x.done);
+  else if(currentFilter==='done') list=list.filter(x=>x.done);
+  else if(currentFilter==='overdue') list=list.filter(x=>!x.done&&x.due&&x.due<t);
+  else if(currentFilter==='today') list=list.filter(x=>!x.done&&x.due===t);
+  const sort=document.getElementById('sort-sel').value;
+  if(sort==='priority') list.sort((a,b)=>priOrder[a.priority]-priOrder[b.priority]);
+  else if(sort==='date') list.sort((a,b)=>{ if(!a.due&&!b.due) return 0; if(!a.due) return 1; if(!b.due) return -1; return a.due.localeCompare(b.due); });
+  else if(sort==='created') list.sort((a,b)=>a.id-b.id);
+  else list.sort((a,b)=>(b.order||0)-(a.order||0));
+  return list;
+}
+
+function render(){
+  const t=today();
+  const total=tasks.length, done=tasks.filter(x=>x.done).length;
+  const over=tasks.filter(x=>!x.done&&x.due&&x.due<t).length;
+  const activeCount=tasks.filter(x=>!x.done).length;
+  const todayCount=tasks.filter(x=>!x.done&&x.due===t).length;
+
+  document.getElementById('nc-all').textContent=total;
+  document.getElementById('nc-active').textContent=activeCount;
+  document.getElementById('nc-today').textContent=todayCount;
+  document.getElementById('nc-over').textContent=over;
+  document.getElementById('nc-done').textContent=done;
+
+  document.getElementById('hd-done').textContent=done+' 已完成';
+  const overEl=document.getElementById('hd-over');
+  if(over>0){ overEl.textContent=over+' 已逾期'; overEl.style.display=''; } else overEl.style.display='none';
+
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-label').textContent=pct+'%';
+
+  const filtered=getFiltered();
+  document.getElementById('task-count-label').textContent=filtered.length+' 个任务';
+  const list=document.getElementById('task-list');
+
+  if(!filtered.length){ list.innerHTML='<div class="empty">暂无任务 ✨</div>'; return; }
+
+  list.innerHTML=filtered.map(task=>{
+    const ds=dateStatus(task.due);
+    const dcls=ds==='over'?'b-date-over':ds==='soon'?'b-date-soon':'b-date-ok';
+    return `<div class="task-item ${task.done?'done':''}" draggable="true" data-id="${task.id}"
+      ondragstart="dragStart(event,${task.id})" ondragover="dragOver(event,${task.id})"
+      ondrop="drop(event,${task.id})" ondragend="dragEnd()">
+      <span class="drag-handle">⠿</span>
+      <button class="check-btn ${task.done?'checked':''}" onclick="toggleTask(${task.id})"></button>
+      <div class="task-body">
+        <div class="task-text ${task.done?'done':''}">${escHtml(task.text)}</div>
+        ${task.note?`<div class="task-note">${escHtml(task.note)}</div>`:''}
+        <div class="task-meta">
+          <span class="badge b-${task.priority}">${priLabel[task.priority]}</span>
+          ${task.tag?`<span class="badge b-tag">${tagIcon[task.tag]||''} ${escHtml(task.tag)}</span>`:''}
+          ${task.due?`<span class="badge ${dcls}">${fmtDate(task.due)}</span>`:''}
+        </div>
+      </div>
+      <div class="task-actions">
+        <button class="icon-btn" onclick="openEdit(${task.id})">✎</button>
+        <button class="icon-btn del-btn" onclick="deleteTask(${task.id})">×</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openEdit(id){
+  const t=tasks.find(t=>t.id===id); if(!t) return;
+  const modal=document.createElement('div');
+  modal.className='modal-bg'; modal.id='edit-modal';
+  modal.innerHTML=`<div class="modal">
+    <div class="modal-title">编辑任务</div>
+    <label>任务名称</label><input type="text" id="e-text" value="${escHtml(t.text)}" />
+    <label>备注</label><textarea id="e-note" placeholder="添加备注…">${escHtml(t.note||'')}</textarea>
+    <label>优先级</label><select id="e-pri">
+      <option value="high" ${t.priority==='high'?'selected':''}>🔴 高优先级</option>
+      <option value="medium" ${t.priority==='medium'?'selected':''}>🟡 中优先级</option>
+      <option value="low" ${t.priority==='low'?'selected':''}>🟢 低优先级</option>
+    </select>
+    <label>标签</label><select id="e-tag">
+      <option value="" ${!t.tag?'selected':''}>无标签</option>
+      <option value="工作" ${t.tag==='工作'?'selected':''}>💼 工作</option>
+      <option value="个人" ${t.tag==='个人'?'selected':''}>🏠 个人</option>
+      <option value="学习" ${t.tag==='学习'?'selected':''}>📚 学习</option>
+      <option value="购物" ${t.tag==='购物'?'selected':''}>🛒 购物</option>
+    </select>
+    <label>截止日期</label><input type="date" id="e-due" value="${t.due||''}" />
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-save" onclick="saveEdit(${id})">保存</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
+  document.getElementById('e-text').focus();
+}
+
+function closeModal(){ const m=document.getElementById('edit-modal'); if(m) m.remove(); }
+function saveEdit(id){
+  const t=tasks.find(t=>t.id===id); if(!t) return;
+  t.text=document.getElementById('e-text').value.trim()||t.text;
+  t.note=document.getElementById('e-note').value.trim();
+  t.priority=document.getElementById('e-pri').value;
+  t.tag=document.getElementById('e-tag').value;
+  t.due=document.getElementById('e-due').value;
+  closeModal(); save(); render();
+}
+
+function dragStart(e,id){ dragSrc=id; setTimeout(()=>{ const el=document.querySelector(`[data-id="${id}"]`); if(el) el.classList.add('dragging'); },0); }
+function dragOver(e,id){ e.preventDefault(); document.querySelectorAll('.task-item').forEach(el=>el.classList.remove('drag-over')); const el=document.querySelector(`[data-id="${id}"]`); if(el&&id!==dragSrc) el.classList.add('drag-over'); }
+function drop(e,targetId){ e.preventDefault(); if(dragSrc===targetId) return; const src=tasks.find(t=>t.id===dragSrc),tgt=tasks.find(t=>t.id===targetId); if(!src||!tgt) return; [src.order,tgt.order]=[tgt.order||0,src.order||0]; document.querySelectorAll('.task-item').forEach(el=>el.classList.remove('drag-over')); save(); render(); }
+function dragEnd(){ document.querySelectorAll('.task-item').forEach(el=>{ el.classList.remove('dragging'); el.classList.remove('drag-over'); }); dragSrc=null; }
+
+function exportJSON(){
+  const blob=new Blob([JSON.stringify({tasks,exported:new Date().toISOString()},null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='taskflow-backup.json'; a.click();
+}
+
+document.getElementById('task-input').addEventListener('keydown',e=>{ if(e.key==='Enter') addTask(); });
+document.getElementById('page-date').textContent=new Date().toLocaleDateString('zh-CN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+load(); render();
+</script>
+</body>
+</html>
