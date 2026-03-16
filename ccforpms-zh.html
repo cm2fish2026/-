@@ -1,0 +1,2815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>面向产品经理的 Claude Code · 免费课程</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─────────────────────────────────────── */
+:root{
+  --ink:       #1a1a1a;
+  --ink-2:     #4a4a4a;
+  --ink-3:     #888;
+  --paper:     #faf9f6;
+  --paper-2:   #f3f1ec;
+  --paper-3:   #ece9e2;
+  --rule:      #ddd9d0;
+  --accent:    #b85c38;
+  --accent-l:  #f2ede8;
+  --code-bg:   #f0ede6;
+  --sidebar-w: 260px;
+  --content-w: 780px;
+  --serif:     'Noto Serif SC', Georgia, serif;
+  --sans:      'Noto Sans SC', system-ui, sans-serif;
+  --mono:      'JetBrains Mono', 'Courier New', monospace;
+  --lh:        1.85;
+  --r:         6px;
+}
+
+/* ─── RESET ──────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:var(--lh);
+  color:var(--ink);
+  background:var(--paper);
+  min-height:100vh;
+}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+img{max-width:100%;display:block}
+
+/* ─── TOP NAV ────────────────────────────────────── */
+#top-nav{
+  position:fixed;
+  top:0;left:0;right:0;
+  z-index:200;
+  height:52px;
+  background:rgba(250,249,246,.95);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--rule);
+  display:flex;align-items:center;
+  padding:0 1.25rem;
+  gap:1rem;
+}
+#nav-logo{
+  font-family:var(--mono);
+  font-size:.78rem;
+  font-weight:500;
+  color:var(--ink);
+  white-space:nowrap;
+}
+#nav-logo span{color:var(--accent)}
+#menu-btn{
+  display:none;
+  background:none;border:1px solid var(--rule);
+  border-radius:var(--r);
+  padding:.3rem .55rem;
+  cursor:pointer;
+  font-size:.85rem;
+  color:var(--ink-2);
+  margin-left:auto;
+}
+#nav-right{
+  margin-left:auto;
+  display:flex;align-items:center;gap:.5rem;
+}
+#nav-right a{
+  font-size:.78rem;
+  color:var(--ink-2);
+  padding:.3rem .65rem;
+  border-radius:var(--r);
+  transition:background .15s;
+}
+#nav-right a:hover{background:var(--paper-2);text-decoration:none}
+#nav-right .cta{
+  background:var(--accent);
+  color:#fff !important;
+  font-weight:500;
+}
+#nav-right .cta:hover{background:#a0502f}
+
+/* ─── LAYOUT ─────────────────────────────────────── */
+#app{display:flex;padding-top:52px;min-height:calc(100vh - 52px)}
+
+/* ─── SIDEBAR ────────────────────────────────────── */
+#sidebar{
+  width:var(--sidebar-w);
+  flex-shrink:0;
+  position:fixed;
+  top:52px;bottom:0;left:0;
+  overflow-y:auto;
+  background:var(--paper-2);
+  border-right:1px solid var(--rule);
+  padding:1rem 0 2rem;
+  transition:transform .25s ease;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+#sidebar::-webkit-scrollbar-thumb{background:var(--rule)}
+
+.sidebar-group{margin-bottom:.25rem}
+.sidebar-group-title{
+  font-size:.68rem;
+  font-weight:500;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+  padding:.55rem 1.1rem .25rem;
+  cursor:pointer;
+  user-select:none;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.sidebar-group-title::after{
+  content:'▾';
+  font-size:.65rem;
+  transition:transform .2s;
+}
+.sidebar-group.collapsed .sidebar-group-title::after{transform:rotate(-90deg)}
+.sidebar-group-items{overflow:hidden;transition:max-height .25s ease}
+.sidebar-group.collapsed .sidebar-group-items{max-height:0 !important}
+
+.sidebar-link{
+  display:block;
+  font-size:.82rem;
+  color:var(--ink-2);
+  padding:.38rem 1.1rem .38rem 1.5rem;
+  border-left:2px solid transparent;
+  transition:all .15s;
+  cursor:pointer;
+}
+.sidebar-link:hover{color:var(--ink);background:var(--paper-3);text-decoration:none}
+.sidebar-link.active{
+  color:var(--accent);
+  border-left-color:var(--accent);
+  background:var(--accent-l);
+  font-weight:500;
+}
+.sidebar-home-link{
+  display:block;
+  font-size:.82rem;
+  color:var(--ink-2);
+  padding:.45rem 1.1rem;
+  margin-bottom:.25rem;
+  cursor:pointer;
+  transition:all .15s;
+}
+.sidebar-home-link:hover{color:var(--ink);text-decoration:none}
+.sidebar-home-link.active{color:var(--accent);font-weight:500}
+
+/* ─── MAIN CONTENT ───────────────────────────────── */
+#main{
+  margin-left:var(--sidebar-w);
+  flex:1;
+  min-width:0;
+  padding:2.5rem 2rem 4rem;
+  max-width:calc(var(--sidebar-w) + var(--content-w));
+}
+#content-inner{
+  max-width:var(--content-w);
+  margin:0 auto;
+}
+
+/* ─── TYPOGRAPHY ─────────────────────────────────── */
+.page{display:none}
+.page.active{display:block}
+
+/* Breadcrumb */
+.breadcrumb{
+  font-size:.75rem;
+  color:var(--ink-3);
+  margin-bottom:1.75rem;
+  font-family:var(--mono);
+}
+.breadcrumb span{color:var(--ink-3);margin:0 .35rem}
+
+/* Headings */
+h1{
+  font-family:var(--serif);
+  font-size:2rem;
+  font-weight:700;
+  line-height:1.3;
+  margin-bottom:1.5rem;
+  color:var(--ink);
+}
+h2{
+  font-family:var(--serif);
+  font-size:1.35rem;
+  font-weight:600;
+  margin:2.5rem 0 .75rem;
+  color:var(--ink);
+  padding-bottom:.4rem;
+  border-bottom:1px solid var(--rule);
+}
+h3{
+  font-family:var(--sans);
+  font-size:1.05rem;
+  font-weight:500;
+  margin:2rem 0 .5rem;
+  color:var(--ink);
+}
+h4{
+  font-family:var(--sans);
+  font-size:.95rem;
+  font-weight:500;
+  margin:1.5rem 0 .4rem;
+  color:var(--ink-2);
+}
+
+/* Body text */
+p{margin-bottom:1rem;color:var(--ink-2)}
+strong{color:var(--ink);font-weight:600}
+em{font-style:italic}
+
+/* Meta row */
+.page-meta{
+  display:flex;flex-wrap:wrap;gap:.5rem 1.25rem;
+  font-size:.8rem;
+  color:var(--ink-3);
+  margin-bottom:1.75rem;
+  padding-bottom:1rem;
+  border-bottom:1px solid var(--rule);
+}
+.page-meta span{display:flex;align-items:center;gap:.3rem}
+
+/* Key takeaway box */
+.callout{
+  background:var(--accent-l);
+  border-left:3px solid var(--accent);
+  border-radius:0 var(--r) var(--r) 0;
+  padding:1rem 1.25rem;
+  margin:1.5rem 0;
+  font-size:.9rem;
+  color:var(--ink-2);
+}
+.callout strong{color:var(--accent)}
+
+/* Module start box */
+.start-box{
+  background:var(--paper-2);
+  border:1px solid var(--rule);
+  border-radius:var(--r);
+  padding:.75rem 1.1rem;
+  margin:1.25rem 0 1.75rem;
+  font-size:.85rem;
+  color:var(--ink-2);
+  font-family:var(--mono);
+  display:flex;align-items:flex-start;gap:.6rem;
+}
+.start-box::before{content:'▶';color:var(--accent);flex-shrink:0;margin-top:.1rem}
+
+/* Code blocks */
+pre{
+  background:var(--code-bg);
+  border:1px solid var(--rule);
+  border-radius:var(--r);
+  padding:1rem 1.25rem;
+  overflow-x:auto;
+  margin:1rem 0 1.25rem;
+  font-family:var(--mono);
+  font-size:.82rem;
+  line-height:1.65;
+  color:var(--ink);
+}
+code{
+  font-family:var(--mono);
+  font-size:.84em;
+  background:var(--code-bg);
+  border:1px solid var(--rule);
+  border-radius:3px;
+  padding:.1em .35em;
+  color:var(--ink);
+}
+pre code{background:none;border:none;padding:0;font-size:1em}
+
+/* Lists */
+ul,ol{
+  padding-left:1.5rem;
+  margin-bottom:1rem;
+  color:var(--ink-2);
+}
+li{margin-bottom:.3rem;line-height:var(--lh)}
+li p{margin-bottom:.25rem}
+
+/* Tables */
+.table-wrap{overflow-x:auto;margin:1.25rem 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.84rem;
+}
+th{
+  background:var(--paper-3);
+  text-align:left;
+  padding:.55rem .85rem;
+  font-weight:500;
+  font-size:.78rem;
+  letter-spacing:.02em;
+  border-bottom:2px solid var(--rule);
+  white-space:nowrap;
+}
+td{
+  padding:.5rem .85rem;
+  border-bottom:1px solid var(--rule);
+  color:var(--ink-2);
+  vertical-align:top;
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--paper-2)}
+
+/* Blockquote */
+blockquote{
+  border-left:3px solid var(--rule);
+  padding:.5rem 1.25rem;
+  margin:1.25rem 0;
+  color:var(--ink-3);
+  font-style:italic;
+  font-size:.95rem;
+}
+
+/* Section divider */
+hr{
+  border:none;
+  border-top:1px solid var(--rule);
+  margin:2rem 0;
+}
+
+/* ─── NAV BUTTONS ────────────────────────────────── */
+.page-nav{
+  display:flex;justify-content:space-between;
+  margin-top:3rem;
+  padding-top:1.5rem;
+  border-top:1px solid var(--rule);
+  gap:1rem;
+}
+.page-nav-btn{
+  display:inline-flex;flex-direction:column;
+  font-size:.82rem;
+  padding:.65rem 1rem;
+  border:1px solid var(--rule);
+  border-radius:var(--r);
+  background:var(--paper-2);
+  color:var(--ink-2);
+  cursor:pointer;
+  transition:all .15s;
+  max-width:48%;
+  text-align:left;
+}
+.page-nav-btn:hover{border-color:var(--accent);color:var(--accent);text-decoration:none}
+.page-nav-btn .label{
+  font-size:.68rem;
+  color:var(--ink-3);
+  margin-bottom:.1rem;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.page-nav-btn.next{
+  margin-left:auto;
+  text-align:right;
+}
+
+/* ─── HOME PAGE ──────────────────────────────────── */
+.home-hero{
+  border-bottom:1px solid var(--rule);
+  padding-bottom:2.5rem;
+  margin-bottom:2.5rem;
+}
+.home-hero h1{
+  font-size:2.2rem;
+  margin-bottom:.75rem;
+}
+.home-hero .subtitle{
+  font-size:1.05rem;
+  color:var(--ink-2);
+  max-width:540px;
+  margin-bottom:1.5rem;
+}
+.home-hero .cta-row{
+  display:flex;flex-wrap:wrap;gap:.75rem;
+}
+.btn{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.6rem 1.25rem;
+  border-radius:var(--r);
+  font-size:.88rem;
+  cursor:pointer;
+  transition:all .15s;
+  border:1px solid var(--rule);
+  font-family:var(--sans);
+  font-weight:500;
+}
+.btn-primary{
+  background:var(--accent);
+  color:#fff;
+  border-color:var(--accent);
+}
+.btn-primary:hover{background:#a0502f;text-decoration:none;color:#fff}
+.btn-secondary{
+  background:var(--paper-2);
+  color:var(--ink-2);
+}
+.btn-secondary:hover{background:var(--paper-3);text-decoration:none;color:var(--ink)}
+
+.home-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1rem;
+  margin-bottom:2.5rem;
+}
+.home-card{
+  background:var(--paper-2);
+  border:1px solid var(--rule);
+  border-radius:var(--r);
+  padding:1.25rem;
+  cursor:pointer;
+  transition:border-color .15s;
+}
+.home-card:hover{border-color:var(--accent)}
+.home-card h3{
+  font-size:.92rem;
+  margin:0 0 .35rem;
+  color:var(--ink);
+}
+.home-card p{font-size:.82rem;color:var(--ink-3);margin:0}
+
+.home-section-title{
+  font-family:var(--serif);
+  font-size:1.1rem;
+  font-weight:600;
+  margin-bottom:1rem;
+  color:var(--ink);
+}
+
+/* ─── OVERLAY ────────────────────────────────────── */
+#overlay{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.35);
+  z-index:150;
+}
+
+/* ─── FOOTER ─────────────────────────────────────── */
+.page-footer{
+  margin-top:3rem;
+  padding-top:1.5rem;
+  border-top:1px solid var(--rule);
+  font-size:.75rem;
+  color:var(--ink-3);
+  font-family:var(--mono);
+}
+.page-footer a{color:var(--ink-3)}
+.page-footer a:hover{color:var(--accent)}
+
+/* ─── RESPONSIVE ─────────────────────────────────── */
+@media(max-width:900px){
+  :root{--sidebar-w:280px}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0)}
+  #menu-btn{display:block}
+  #nav-right .hide-mobile{display:none}
+  #main{margin-left:0;padding:1.5rem 1.15rem 3rem}
+  h1{font-size:1.65rem}
+  .home-grid{grid-template-columns:1fr}
+  #overlay.open{display:block}
+}
+@media(max-width:480px){
+  h1{font-size:1.4rem}
+  h2{font-size:1.15rem}
+  pre{padding:.75rem}
+  .page-nav{flex-direction:column}
+  .page-nav-btn{max-width:100%}
+  .page-nav-btn.next{text-align:left;margin-left:0}
+}
+</style>
+</head>
+<body>
+
+<!-- ── TOP NAV ── -->
+<nav id="top-nav">
+  <span id="nav-logo">CC<span>forPMs</span></span>
+  <button id="menu-btn" onclick="toggleSidebar()">☰ 目录</button>
+  <div id="nav-right">
+    <a href="https://github.com/carlvellotti/claude-code-pm-course" target="_blank" class="hide-mobile">GitHub</a>
+    <a href="javascript:void(0)" onclick="goto('start')" class="cta">开始学习</a>
+  </div>
+</nav>
+
+<div id="overlay" onclick="closeSidebar()"></div>
+
+<!-- ── SIDEBAR ── -->
+<aside id="sidebar">
+  <a class="sidebar-home-link" id="sl-home" onclick="goto('home')">🏠 首页</a>
+
+  <div class="sidebar-group" id="sg-m0">
+    <div class="sidebar-group-title" onclick="toggleGroup('sg-m0')">模块 0：快速入门</div>
+    <div class="sidebar-group-items" style="max-height:300px">
+      <a class="sidebar-link" id="sl-intro" onclick="goto('intro')">0.0 课程介绍</a>
+      <a class="sidebar-link" id="sl-install" onclick="goto('install')">0.1 安装配置</a>
+      <a class="sidebar-link" id="sl-start" onclick="goto('start')">0.2 启动与克隆</a>
+    </div>
+  </div>
+
+  <div class="sidebar-group" id="sg-m1">
+    <div class="sidebar-group-title" onclick="toggleGroup('sg-m1')">模块 1：基础能力</div>
+    <div class="sidebar-group-items" style="max-height:400px">
+      <a class="sidebar-link" id="sl-welcome" onclick="goto('welcome')">1.1 欢迎 · TaskFlow</a>
+      <a class="sidebar-link" id="sl-viz" onclick="goto('viz')">1.2 可视化工作区</a>
+      <a class="sidebar-link" id="sl-tasks" onclick="goto('tasks')">1.3 第一个 PM 任务</a>
+      <a class="sidebar-link" id="sl-agents" onclick="goto('agents')">1.4 并行 Agent</a>
+      <a class="sidebar-link" id="sl-subagents" onclick="goto('subagents')">1.5 自定义子 Agent</a>
+      <a class="sidebar-link" id="sl-memory" onclick="goto('memory')">1.6 项目记忆</a>
+      <a class="sidebar-link" id="sl-nav" onclick="goto('nav')">1.7 导航与操作模式</a>
+    </div>
+  </div>
+
+  <div class="sidebar-group" id="sg-m2">
+    <div class="sidebar-group-title" onclick="toggleGroup('sg-m2')">模块 2：高级 PM 工作</div>
+    <div class="sidebar-group-items" style="max-height:200px">
+      <a class="sidebar-link" id="sl-prd" onclick="goto('prd')">2.1 编写 PRD</a>
+      <a class="sidebar-link" id="sl-data" onclick="goto('data')">2.2 数据分析</a>
+      <a class="sidebar-link" id="sl-strategy" onclick="goto('strategy')">2.3 产品策略</a>
+    </div>
+  </div>
+
+  <div class="sidebar-group" id="sg-m3">
+    <div class="sidebar-group-title" onclick="toggleGroup('sg-m3')">模块 3：Nano Banana</div>
+    <div class="sidebar-group-items" style="max-height:400px">
+      <a class="sidebar-link" id="sl-nb-setup" onclick="goto('nb-setup')">3.0 安装与下载</a>
+      <a class="sidebar-link" id="sl-nb-first" onclick="goto('nb-first')">3.1.1 欢迎 · 首次生成</a>
+      <a class="sidebar-link" id="sl-nb-basics" onclick="goto('nb-basics')">3.1.2 基础知识</a>
+      <a class="sidebar-link" id="sl-nb-style" onclick="goto('nb-style')">3.1.3 一致性与风格</a>
+      <a class="sidebar-link" id="sl-nb-db" onclick="goto('nb-db')">3.1.4 风格数据库</a>
+      <a class="sidebar-link" id="sl-nb-users" onclick="goto('nb-users')">3.2.1 用户与产品视觉</a>
+      <a class="sidebar-link" id="sl-nb-arch" onclick="goto('nb-arch')">3.2.2 策略与架构视觉</a>
+      <a class="sidebar-link" id="sl-nb-mkt" onclick="goto('nb-mkt')">3.2.3 营销与发布素材</a>
+    </div>
+  </div>
+
+  <div class="sidebar-group" id="sg-m4">
+    <div class="sidebar-group-title" onclick="toggleGroup('sg-m4')">模块 4：Vibe Coding</div>
+    <div class="sidebar-group-items" style="max-height:300px">
+      <a class="sidebar-link" id="sl-vc-ov" onclick="goto('vc-ov')">模块概览</a>
+      <a class="sidebar-link" id="sl-vc-setup" onclick="goto('vc-setup')">4.1 环境搭建</a>
+      <a class="sidebar-link" id="sl-vc-plan" onclick="goto('vc-plan')">4.2 规划需求</a>
+      <a class="sidebar-link" id="sl-vc-build" onclick="goto('vc-build')">4.3 构建与迭代</a>
+      <a class="sidebar-link" id="sl-vc-gh" onclick="goto('vc-gh')">4.4 GitHub</a>
+      <a class="sidebar-link" id="sl-vc-live" onclick="goto('vc-live')">4.5 上线部署</a>
+    </div>
+  </div>
+
+  <div class="sidebar-group" id="sg-cowork">
+    <div class="sidebar-group-title" onclick="toggleGroup('sg-cowork')">Cowork 完整指南</div>
+    <div class="sidebar-group-items" style="max-height:60px">
+      <a class="sidebar-link" id="sl-cowork" onclick="goto('cowork')">完整指南</a>
+    </div>
+  </div>
+
+  <div class="sidebar-group" id="sg-tf">
+    <div class="sidebar-group-title" onclick="toggleGroup('sg-tf')">TaskFlow 背景资料</div>
+    <div class="sidebar-group-items" style="max-height:200px">
+      <a class="sidebar-link" id="sl-tf-co" onclick="goto('tf-co')">公司概览</a>
+      <a class="sidebar-link" id="sl-tf-prod" onclick="goto('tf-prod')">产品概览</a>
+      <a class="sidebar-link" id="sl-tf-pers" onclick="goto('tf-pers')">用户画像</a>
+      <a class="sidebar-link" id="sl-tf-comp" onclick="goto('tf-comp')">竞争格局</a>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main id="main">
+<div id="content-inner">
+
+<!-- ══════════════════════════════════════════════════
+     HOME
+══════════════════════════════════════════════════ -->
+<div class="page active" id="page-home">
+  <div class="home-hero">
+    <h1>面向产品经理的<br>Claude Code 免费课程</h1>
+    <p class="subtitle">唯一一门在 Claude Code <strong>内部</strong>教授的课程——没有视频，没有文档堆砌，只有真实的 PM 工作实战演练。</p>
+    <div class="cta-row">
+      <a href="https://github.com/carlvellotti/claude-code-pm-course/releases/latest/download/complete-course.zip" class="btn btn-primary" target="_blank">↓ 下载课程材料</a>
+      <button class="btn btn-secondary" onclick="goto('install')">📖 安装指南</button>
+      <button class="btn btn-secondary" onclick="goto('intro')">开始学习 →</button>
+    </div>
+  </div>
+
+  <div class="home-section-title">这门课程适合你吗？</div>
+  <p>Claude Code 不是聊天机器人。它是能直接操作你电脑上文件的 AI——阅读用研报告、编辑 PRD、分析数据、并行启动多个实例处理批量任务。你不需要任何编程或终端经验，只要能用语言描述你想做的事，就能使用 Claude Code。</p>
+
+  <div class="home-grid">
+    <div class="home-card" onclick="goto('intro')">
+      <h3>📖 0.0 课程介绍</h3>
+      <p>了解 Claude Code 能为 PM 做什么，以及与传统聊天机器人的本质区别</p>
+    </div>
+    <div class="home-card" onclick="goto('install')">
+      <h3>⚙️ 0.1 安装配置</h3>
+      <p>15 分钟内完成安装，包含 Node.js 检查、Claude Code 安装与认证</p>
+    </div>
+    <div class="home-card" onclick="goto('start')">
+      <h3>🚀 0.2 启动与克隆</h3>
+      <p>下载课程材料，启动 Claude Code，开始你与真正能执行任务的 AI 的第一次对话</p>
+    </div>
+    <div class="home-card" onclick="goto('welcome')">
+      <h3>🏢 1.1 认识 TaskFlow</h3>
+      <p>了解贯穿全课程的虚构 SaaS 公司，以及课程结构与学习路径</p>
+    </div>
+    <div class="home-card" onclick="goto('agents')">
+      <h3>⚡ 1.4 并行 Agent</h3>
+      <p>同时启动 10 个 Agent 并行处理 10 份文件——把 50 分钟压缩到 5 分钟</p>
+    </div>
+    <div class="home-card" onclick="goto('prd')">
+      <h3>📋 2.1 用 AI 写 PRD</h3>
+      <p>以 AI 为思维伙伴，利用全量上下文、苏格拉底式追问与多视角反馈写出更好的 PRD</p>
+    </div>
+  </div>
+
+  <div class="home-section-title">课程结构</div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>模块</th><th>主题</th><th>时长</th></tr>
+      <tr><td>模块 0</td><td>快速入门：安装与首次对话</td><td>30 分钟</td></tr>
+      <tr><td>模块 1</td><td>基础能力：文件操作、Agent、子 Agent、项目记忆</td><td>2–3 小时</td></tr>
+      <tr><td>模块 2</td><td>高级 PM 工作：PRD、数据分析、产品策略</td><td>3–4 小时</td></tr>
+      <tr><td>模块 3</td><td>Nano Banana：用 AI 生成专业视觉资产</td><td>2–3 小时</td></tr>
+      <tr><td>模块 4</td><td>Vibe Coding：从零搭建并上线一个 Web 应用</td><td>1–2 小时</td></tr>
+    </table>
+  </div>
+
+  <div class="page-footer">
+    原版网站：<a href="https://ccforpms.com" target="_blank">ccforpms.com</a> · 作者：Carl Vellotti · 授权协议：CC BY-NC-ND 4.0
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     0.0 INTRO
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-intro">
+  <div class="breadcrumb">模块 0：快速入门 <span>›</span> 0.0 课程介绍</div>
+  <h1>0.0 课程介绍</h1>
+  <div class="page-meta">
+    <span>📖 概览</span>
+  </div>
+
+  <div class="callout"><strong>核心要点：</strong>Claude Code 让 PM 从手动执行者变成业务编排者。你专注于战略决策，Claude 负责文档整合、数据分析和工作流自动化。</div>
+
+  <h2>📖 概览</h2>
+  <p>Claude Code 是一个直接在你电脑上操作文件和文件夹的 AI 助手。与传统聊天机器人需要手动复制粘贴上下文不同，Claude Code 可以通过自然对话直接读取文档、分析数据、创建材料。</p>
+
+  <h2>🎯 你将构建什么</h2>
+  <p>本课程教你用 Claude Code 搭建一套 PM 生产力系统，包含以下核心能力：</p>
+  <ol>
+    <li><strong>文件操作</strong>——用 @ 符号读取、写入和引用文件</li>
+    <li><strong>视觉分析</strong>——粘贴截图，分析 Mockup、图表、数据</li>
+    <li><strong>并行 Agent</strong>——同时运行多个 AI 实例处理批量任务</li>
+    <li><strong>自定义子 Agent</strong>——构建有个性的永久专属团队成员</li>
+    <li><strong>项目记忆</strong>——通过 CLAUDE.md 维护关于产品和团队的持久上下文</li>
+  </ol>
+
+  <h2>📋 前提条件</h2>
+  <div class="table-wrap"><table>
+    <tr><th>要求</th><th>说明</th></tr>
+    <tr><td>Claude 订阅</td><td>Claude Pro（$20/月）或 Claude Max，不支持免费版。在 <a href="https://claude.ai" target="_blank">claude.ai</a> 注册</td></tr>
+    <tr><td>Node.js</td><td>需要 18 或更高版本</td></tr>
+    <tr><td>操作系统</td><td>macOS 或 Windows 10+</td></tr>
+  </table></div>
+  <p><strong>时间投入：</strong>第一级（基础）2-3 小时，第二级（进阶）4-5 小时，合计约 10-12 小时成为熟练用户。</p>
+
+  <h2>💼 真实 PM 使用场景</h2>
+
+  <h3>战略工作</h3>
+  <ul>
+    <li><strong>PRD 撰写</strong>——将研究、访谈和竞品分析整合成完整文档</li>
+    <li><strong>Roadmap 规划</strong>——分析市场数据和相关方输入</li>
+    <li><strong>客户反馈分析</strong>——数分钟内处理数百条反馈</li>
+    <li><strong>竞品情报</strong>——生成 SWOT 分析和对比矩阵</li>
+  </ul>
+
+  <h3>执行与组织</h3>
+  <ul>
+    <li><strong>Ticket 生成</strong>——将功能规格转换为用户故事和 Jira 工单</li>
+    <li><strong>多格式转换</strong>——把 PRD 转为一页纸、PPT、发布说明</li>
+    <li><strong>文件整理</strong>——整理研究文件、会议记录、截图</li>
+  </ul>
+
+  <h3>沟通</h3>
+  <ul>
+    <li><strong>相关方更新</strong>——起草邮件、Slack 消息、Notion 页面</li>
+    <li><strong>发布说明</strong>——将工程变更日志转化为客户友好语言</li>
+  </ul>
+
+  <h3>研究与分析</h3>
+  <ul>
+    <li><strong>洞察综合</strong>——合并用户访谈、问卷、支持工单和应用评论</li>
+    <li><strong>竞品研究</strong>——自动化竞品情报收集</li>
+  </ul>
+
+  <h2>🔄 Claude Code vs 传统聊天机器人</h2>
+  <div class="table-wrap"><table>
+    <tr><th>功能</th><th>传统聊天机器人</th><th>Claude Code</th></tr>
+    <tr><td>文件访问</td><td>无</td><td>读写电脑上任意文件</td></tr>
+    <tr><td>记忆</td><td>会话结束即消失</td><td>通过 CLAUDE.md 永久保留项目记忆</td></tr>
+    <tr><td>执行</td><td>只给建议，需手动操作</td><td>真正执行命令、创建文件</td></tr>
+    <tr><td>多文件</td><td>一次性响应</td><td>同时处理数十个文档</td></tr>
+    <tr><td>Agent</td><td>单实例</td><td>并行运行多个 Agent</td></tr>
+    <tr><td>集成</td><td>有限</td><td>通过 MCP 连接 Notion、Linear、Slack、GitHub</td></tr>
+    <tr><td>自动化</td><td>手动复制粘贴</td><td>通过自定义命令真正自动化</td></tr>
+  </table></div>
+
+  <h2>🧠 思维方式转变</h2>
+  <blockquote>「Claude Code 让开发者从命令输入者变成了强大系统的编排者。」——Peter Steinberger，PDF Expert 创始人</blockquote>
+  <p>同样的道理适用于 PM。你不是在学写代码——你是在学编排。</p>
+  <ul>
+    <li>从「我需要学这个命令」</li>
+    <li>到「我需要实现这个结果」</li>
+  </ul>
+  <p>Claude Code 在终端中运行，可能让人感到陌生。但你不会学终端命令——你只是在对话。到模块 0 结束时，终端就只是你与 Claude 交谈的地方。</p>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('home')"><span class="label">上一页</span>首页</button>
+    <button class="page-nav-btn next" onclick="goto('install')"><span class="label">下一页</span>0.1 安装配置 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     0.1 INSTALL
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-install">
+  <div class="breadcrumb">模块 0：快速入门 <span>›</span> 0.1 安装配置</div>
+  <h1>0.1 安装配置</h1>
+  <div class="page-meta"><span>⏱ 15 分钟</span><span>前提：Claude Pro 或 Max 订阅</span></div>
+
+  <div class="callout"><strong>核心要点：</strong>Claude Code 需要 Node.js 18+ 和付费 Claude 订阅。前提条件满足后，安装用时不到 5 分钟。</div>
+
+  <h2>如何打开终端</h2>
+  <p><strong>Mac：</strong>按 <code>Cmd + Space</code> 打开 Spotlight，输入「Terminal」，按回车。</p>
+  <p><strong>Windows：</strong>按 Windows 键，输入「PowerShell」，按回车。</p>
+
+  <h2>检查 Node.js 版本</h2>
+  <p>在终端中输入以下命令并按回车：</p>
+  <pre>node --version</pre>
+  <p>如果看到 <code>v18.0.0</code> 或更高版本，可直接进入安装步骤。否则请先安装 Node.js。</p>
+
+  <h2>安装 Node.js（如需要）</h2>
+  <p><strong>推荐方式：</strong>从 <a href="https://nodejs.org" target="_blank">nodejs.org</a> 下载 LTS 版本。</p>
+  <div class="table-wrap"><table>
+    <tr><th>平台</th><th>命令</th></tr>
+    <tr><td>macOS</td><td><code>brew install node</code></td></tr>
+    <tr><td>Windows</td><td><code>choco install nodejs</code></td></tr>
+  </table></div>
+  <p><strong>重要：</strong>安装 Node.js 后，完全关闭终端窗口并重新打开，以刷新系统 PATH。</p>
+
+  <h2>安装 Claude Code</h2>
+  <p><strong>Mac：</strong></p>
+  <pre>curl -fsSL https://claude.ai/install.sh | bash</pre>
+  <p><strong>Windows（PowerShell）：</strong></p>
+  <pre>irm https://claude.ai/install.ps1 | iex</pre>
+
+  <h2>验证安装</h2>
+  <pre>claude --version</pre>
+  <p>如果看到版本号，安装成功。如果提示「command not found」，完全关闭终端并重新打开后再试。</p>
+
+  <h2>认证</h2>
+  <p>在终端输入 <code>claude</code> 并按回车，然后：</p>
+  <ol>
+    <li>选择「Claude account with subscription」（不是 Anthropic Console）</li>
+    <li>完成浏览器认证</li>
+    <li>选择终端文字样式</li>
+  </ol>
+  <p>认证完成后，你会看到 Claude Code 欢迎界面。</p>
+
+  <h2>健康检查</h2>
+  <p>在 Claude Code 内部输入：</p>
+  <pre>/doctor</pre>
+  <p>该命令会验证安装完整性、有效订阅、系统配置，健康状态所有条目会显示绿色勾选。</p>
+
+  <h2>常见问题排查</h2>
+
+  <h3>提示「command not found: claude」</h3>
+  <p>完全关闭终端并重新打开。如仍然失败，检查 PATH 配置：</p>
+  <p><strong>Mac：</strong>在 <code>~/.bashrc</code> 或 <code>~/.zshrc</code> 中添加：</p>
+  <pre>export PATH=$HOME/.local/bin:$PATH</pre>
+  <p><strong>Windows：</strong>重启电脑（安装程序会自动更新 PATH）。</p>
+
+  <h3>提示需要订阅</h3>
+  <p>在 <a href="https://claude.ai" target="_blank">claude.ai</a> 验证有效的 Claude Pro/Max 订阅，然后退出重新登录。</p>
+
+  <h3>Node 版本过低</h3>
+  <p>检查版本：</p>
+  <pre>node --version</pre>
+  <p>如低于 v18.0.0，从 <a href="https://nodejs.org" target="_blank">nodejs.org</a> 下载最新 LTS 版本。</p>
+
+  <h2>命令参考</h2>
+  <div class="table-wrap"><table>
+    <tr><th>命令</th><th>功能</th></tr>
+    <tr><td><code>node --version</code></td><td>检查 Node.js 版本</td></tr>
+    <tr><td><code>claude</code></td><td>启动 Claude Code</td></tr>
+    <tr><td><code>claude --version</code></td><td>检查 Claude Code 版本</td></tr>
+    <tr><td><code>/doctor</code></td><td>运行系统健康检查（在 Claude Code 内部）</td></tr>
+    <tr><td><code>/help</code></td><td>查看可用命令（在 Claude Code 内部）</td></tr>
+  </table></div>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('intro')"><span class="label">上一页</span>← 0.0 课程介绍</button>
+    <button class="page-nav-btn next" onclick="goto('start')"><span class="label">下一页</span>0.2 启动与克隆 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     0.2 START & CLONE
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-start">
+  <div class="breadcrumb">模块 0：快速入门 <span>›</span> 0.2 启动与克隆</div>
+  <h1>0.2 启动 Claude Code 并克隆课程</h1>
+  <div class="page-meta"><span>⏱ 5 分钟</span><span>前提：已完成模块 0.1</span></div>
+
+  <div class="callout"><strong>核心要点：</strong>Claude Code 的核心原则是——描述你想要什么，Claude 处理实现细节。这个模式适用于任何仓库：内部文档、开源项目或个人代码。</div>
+
+  <h2>📦 下载并启动</h2>
+  <p>打开终端，复制粘贴以下命令并按回车：</p>
+  <pre>cd ~/Documents && \
+curl -L https://github.com/carlvellotti/claude-code-pm-course/releases/latest/download/complete-course.zip -o course.zip && \
+unzip course.zip -d claude-code-course && \
+cd claude-code-course && \
+claude "/start-1-1"</pre>
+
+  <p><strong>这段命令做了什么：</strong></p>
+  <ol>
+    <li>导航到你的「文稿」文件夹</li>
+    <li>下载课程材料</li>
+    <li>解压到 <code>claude-code-course</code> 文件夹</li>
+    <li>导航到课程文件夹</li>
+    <li>启动 Claude Code 并立即开始模块 1.1</li>
+  </ol>
+
+  <h2>🎯 备选方案：让 Claude 来操作</h2>
+  <p>想亲眼看看 Claude Code 的实际运作？你可以让 Claude 来处理下载过程：</p>
+  <ol>
+    <li>在终端输入 <code>claude</code>（然后按回车）</li>
+    <li>告诉 Claude：「从 https://github.com/carlvellotti/claude-code-pm-course/releases/latest/download/complete-course.zip 下载课程材料，解压到我的文稿文件夹下名为 claude-code-course 的文件夹中」</li>
+    <li>退出并导航：在终端输入 <code>exit</code>，然后输入 <code>cd ~/Documents/claude-code-course && claude</code></li>
+  </ol>
+
+  <h2>🧪 测试你的设置</h2>
+  <p>在 Claude Code 运行后，向 Claude 说这些（这些是对话，不是终端命令）：</p>
+  <pre>显示所有第一级模块。</pre>
+  <pre>列出模块 1.3 的学习目标。</pre>
+  <pre>context 文件夹里有哪些用户画像？</pre>
+
+  <h2>💡 最佳实践</h2>
+  <p><strong>自然语言优先：</strong>描述你的目标，而不是命令——让 Claude 去想如何实现。</p>
+  <p><strong>验证上下文：</strong>始终在课程材料文件夹内打开 Claude Code。<code>/start</code> 命令只有在 <code>claude-code-course</code> 文件夹内才有效。</p>
+  <p><strong>边做边学：</strong>交互式模块通过实践教学，本参考指南提供快速查阅；结合使用效果最佳。</p>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('install')"><span class="label">上一页</span>← 0.1 安装配置</button>
+    <button class="page-nav-btn next" onclick="goto('welcome')"><span class="label">下一页</span>1.1 欢迎 · TaskFlow →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     1.1 WELCOME
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-welcome">
+  <div class="breadcrumb">模块 1：基础能力 <span>›</span> 1.1 欢迎 · TaskFlow</div>
+  <h1>1.1 欢迎来到 TaskFlow</h1>
+  <div class="page-meta"><span>⏱ 20 分钟</span><span>前提：已安装 Claude Code</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-1-1</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>这是一门实践课程，你将使用 Claude Code 完成真实的 PM 工作。</div>
+
+  <h2>📖 课程运作方式</h2>
+  <h3>两个部分</h3>
+  <p><strong>1. 交互式模块（你现在正在做的）</strong></p>
+  <ul>
+    <li>在 Claude Code 中完成模块，每个模块以斜杠命令开始：<code>/start-1-1</code>、<code>/start-1-2</code> 等</li>
+    <li>Claude 一步步引导你完成练习</li>
+    <li>你真正「做」工作，而不只是阅读</li>
+    <li>为 TaskFlow 完成真实的 PM 任务</li>
+  </ul>
+  <p><strong>2. 参考指南（你现在阅读的内容）</strong></p>
+  <ul>
+    <li>每个模块的完整独立指南，可在不使用 Claude Code 的情况下阅读</li>
+    <li>需要更深入解释时使用，适合复习和查阅</li>
+  </ul>
+
+  <h2>🏢 什么是 TaskFlow？</h2>
+  <p>TaskFlow 是本课程专门创建的虚构项目管理 SaaS 公司。你可以把它想象成<strong>专为远程优先团队打造的 Asana + Jira 结合体</strong>。</p>
+  <div class="table-wrap"><table>
+    <tr><th>项目</th><th>详情</th></tr>
+    <tr><td>成立时间</td><td>2021 年</td></tr>
+    <tr><td>融资阶段</td><td>B 轮（已融资 2000 万美元）</td></tr>
+    <tr><td>团队规模</td><td>50 人（15 工程、5 产品、10 设计、20 GTM）</td></tr>
+    <tr><td>核心指标</td><td>250 万美元 ARR，10,000 活跃用户</td></tr>
+  </table></div>
+  <p><strong>你的角色：</strong>高级产品经理，负责激活与引导，汇报给 CEO（Sarah Chen），与 CTO（Mike Rodriguez）和设计负责人（Alex Kim）密切合作。</p>
+
+  <h2>👥 用户画像</h2>
+  <ul>
+    <li><strong>Sarah（企业管理员）</strong>——大公司 IT 负责人，关注安全、合规和成本控制</li>
+    <li><strong>Mike（IC 工程师）</strong>——软件工程师，关注快速工具、GitHub 集成和减少干扰</li>
+    <li><strong>Alex（团队负责人）</strong>——工程经理，关注团队可见性、工作量平衡和进度跟踪</li>
+  </ul>
+
+  <h2>📂 课程文件结构</h2>
+  <pre>claude-code-pm-course/
+├── company-context/
+│   ├── COMPANY.md     - 公司概览和你的角色
+│   ├── PRODUCT.md     - TaskFlow 产品介绍
+│   ├── PERSONAS.md    - 3 个用户画像
+│   └── COMPETITIVE.md - 竞争格局
+├── lesson-modules/
+│   ├── 1.1-welcome/   - 你现在所在的位置！
+│   ├── 1.2-visualizing-files/
+│   └── [更多模块...]
+├── your-work/         - 练习中创建的文件
+└── CLAUDE.md          - 项目记忆</pre>
+
+  <h2>❓ 常见问题</h2>
+  <p><strong>我需要安装什么？</strong>只需 Obsidian（模块 1.2），免费。</p>
+  <p><strong>可以跳过模块吗？</strong>不推荐。每个模块都在之前的基础上构建。</p>
+  <p><strong>完成全部课程需要多长时间？</strong>约 15-25 小时，自行安排节奏。</p>
+  <p><strong>这适合非技术 PM 吗？</strong>是的！不需要编程经验。</p>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('start')"><span class="label">上一页</span>← 0.2 启动与克隆</button>
+    <button class="page-nav-btn next" onclick="goto('viz')"><span class="label">下一页</span>1.2 可视化工作区 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     1.2 VISUALIZING FILES
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-viz">
+  <div class="breadcrumb">模块 1：基础能力 <span>›</span> 1.2 可视化工作区</div>
+  <h1>1.2 可视化你的工作区</h1>
+  <div class="page-meta"><span>⏱ 15-20 分钟</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-1-2</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>可视化工作区让你能实时看到文件在 Claude 工作时出现和更新。</div>
+
+  <h2>为什么可视化很重要</h2>
+  <p>在终端中使用 Claude Code 感觉像蒙眼工作——你让 Claude 创建文档，却看不到正在发生什么。解决方案是在终端旁边打开一个可视化编辑器。这样你就可以实时看到文件的创建与更新，随时了解正在发生什么，把 Claude Code 从神秘的黑盒变成透明可视的工具。</p>
+
+  <h2>选择你的工具</h2>
+
+  <h3>Nimbalyst（推荐）</h3>
+  <p><a href="https://nimbalyst.com/for-product-managers" target="_blank">Nimbalyst</a> 是专为 Claude Code 用户打造的免费工具，具备所见即所得 Markdown 编辑、文件差异对比、隐藏文件夹可见性和会话管理等功能。</p>
+
+  <h3>Obsidian</h3>
+  <p><a href="https://obsidian.md" target="_blank">Obsidian</a> 是免费的流行 Markdown 编辑器，界面简洁、无干扰。局限：无法显示 <code>.claude/</code> 等隐藏文件夹。</p>
+
+  <h3>VS Code / Cursor</h3>
+  <p>功能完整的代码编辑器，可显示隐藏文件夹，适合已在使用这类工具的用户。</p>
+
+  <h2>快速设置</h2>
+  <p><strong>Nimbalyst：</strong>下载并安装，打开课程文件夹，将 Claude Code 终端和 Nimbalyst 并排放置。</p>
+  <p><strong>Obsidian：</strong>访问 obsidian.md/download 下载，选择「Open folder as vault」，导航到课程文件夹，并排放置。</p>
+
+  <h2>隐藏的 .claude/ 文件夹</h2>
+  <p><code>.claude/</code> 文件夹包含 Agent、命令和设置。不同工具的访问方式：</p>
+  <div class="table-wrap"><table>
+    <tr><th>工具</th><th>能否查看 .claude/</th><th>访问方式</th></tr>
+    <tr><td>Nimbalyst</td><td>能</td><td>文件浏览器中直接可见</td></tr>
+    <tr><td>Obsidian</td><td>否</td><td>使用 Finder / 文件资源管理器</td></tr>
+    <tr><td>VS Code</td><td>能</td><td>启用显示隐藏文件</td></tr>
+  </table></div>
+  <p><strong>Mac：</strong>在 Finder 中按 <code>Cmd + Shift + .</code> 显示隐藏文件夹。</p>
+  <p><strong>Windows：</strong>在文件资源管理器的「查看」选项卡中勾选「隐藏项目」。</p>
+
+  <h2>最佳实践</h2>
+  <ul>
+    <li>始终使用分屏工作流</li>
+    <li>使用快速打开快捷键导航（Obsidian：<code>Cmd/Ctrl + O</code>）</li>
+    <li>将编辑器聚焦在项目文件夹</li>
+    <li>不要仅使用全屏终端——你会错过一半的价值</li>
+  </ul>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('welcome')"><span class="label">上一页</span>← 1.1 欢迎 · TaskFlow</button>
+    <button class="page-nav-btn next" onclick="goto('tasks')"><span class="label">下一页</span>1.3 第一个 PM 任务 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     1.3 FIRST TASKS
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-tasks">
+  <div class="breadcrumb">模块 1：基础能力 <span>›</span> 1.3 第一个 PM 任务</div>
+  <h1>1.3 你的第一个 PM 任务</h1>
+  <div class="page-meta"><span>⏱ 30 分钟</span><span>前提：完成 1.1 和 1.2</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-1-3</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>Claude Code 是具有文件感知和视觉分析能力的助手，每周可节省 2-3 小时的例行 PM 文档工作。</div>
+
+  <h2>核心能力</h2>
+  <div class="table-wrap"><table>
+    <tr><th>能力</th><th>你将学到什么</th></tr>
+    <tr><td>文件读写</td><td>用 @ 引用文件，读取多个文档，创建/编辑文件</td></tr>
+    <tr><td>内容分析</td><td>将笔记转化为行动项，综合研究，提取规律</td></tr>
+    <tr><td>图片粘贴</td><td>在所有平台用 Ctrl+V 直接粘贴截图</td></tr>
+    <tr><td>视觉分析</td><td>获取 Mockup、竞品和数据可视化的反馈</td></tr>
+    <tr><td>输出样式</td><td>为重复文档类型创建可复用的格式模板</td></tr>
+  </table></div>
+
+  <h2>@ 符号——文件引用系统</h2>
+  <pre>读取 @会议记录.txt 并总结行动项</pre>
+  <pre>对比 @竞品A.md 和 @竞品B.md</pre>
+  <pre>读取 /meetings/ 中的所有文件并提取行动项</pre>
+
+  <p><strong>支持的文件类型：</strong>.md、.txt、.csv、.json、.pdf、.png、.jpg</p>
+
+  <h2>粘贴图片——关键快捷键</h2>
+  <div class="callout"><strong>重要：</strong>在所有平台（包括 Mac）均使用 <strong>Ctrl+V</strong>，而非 Command+V。</div>
+  <p>操作步骤：</p>
+  <ol>
+    <li>复制图片到剪贴板（Mac：<code>Cmd+Shift+4</code>，Windows：<code>Win+Shift+S</code>）</li>
+    <li>在终端中按 <strong>Ctrl+V</strong></li>
+    <li>请求分析</li>
+  </ol>
+
+  <h2>内容转换</h2>
+  <p>PM 的核心技能之一是将同一信息传递给不同受众：</p>
+  <pre>读取 @冲刺规划笔记.txt 并创建：
+1. @slack通知.md - 轻松的团队公告
+2. @相关方邮件.md - 正式的高管摘要
+3. @notion文档.md - 完整的参考文档</pre>
+
+  <h2>输出样式——可复用模板</h2>
+  <p>输出样式是格式模板，消除重复的格式说明。</p>
+  <p><strong>创建样式：</strong></p>
+  <pre>创建名为「执行简报」的输出样式，规则如下：
+- 最多 3 段话
+- 第 1 段：发生了什么（结果、指标）
+- 第 2 段：为什么重要（业务影响）
+- 第 3 段：下一步（前瞻）
+- 用项目符号列出指标
+- 无术语，主动语态</pre>
+  <p><strong>使用样式：</strong></p>
+  <pre>将 @会议记录.txt 转换为「执行简报」样式</pre>
+
+  <h2>真实 PM 工作流示例</h2>
+  <h3>会议处理（每周节省 33 分钟）</h3>
+  <pre>处理 /meetings/today/ 中的所有文件，创建 @行动项摘要.md，
+包含按负责人组织的行动项表格，含优先级和截止日期。</pre>
+
+  <h3>用研综合（每个周期节省 2.5 小时）</h3>
+  <pre>读取 /user-interviews/ 中的所有文件，创建 @研究综合.md，包含：
+- 前 5 大痛点（3 个以上用户提及）
+- 每个发现的支持引用
+- 按频率排列的功能需求</pre>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('viz')"><span class="label">上一页</span>← 1.2 可视化工作区</button>
+    <button class="page-nav-btn next" onclick="goto('agents')"><span class="label">下一页</span>1.4 并行 Agent →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     1.4 AGENTS
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-agents">
+  <div class="breadcrumb">模块 1：基础能力 <span>›</span> 1.4 并行 Agent</div>
+  <h1>1.4 并行 Agent</h1>
+  <div class="page-meta"><span>⏱ 25 分钟</span><span>前提：完成 1.3</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-1-4</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>Agent 将 Claude Code 从单个助手转变为可扩展的团队。这不仅仅是更快——它开启了全新的工作流。</div>
+
+  <h2>🤯 什么是 Agent？</h2>
+  <p>Agent 是独立并行运行的 Claude 实例。把它想象成克隆自己来同时处理多个任务：</p>
+  <p><strong>串行工作（无 Agent）：</strong></p>
+  <pre>任务1 (5分钟) → 任务2 (5分钟) → ... → 任务10 (5分钟)
+总耗时：50 分钟</pre>
+  <p><strong>并行工作（有 Agent）：</strong></p>
+  <pre>任务1 ┐
+任务2 │ 同时进行
+任务3 ├─→ 全部并行
+... │
+任务10 ┘
+总耗时：5 分钟</pre>
+
+  <h2>🎯 何时使用 Agent</h2>
+  <div class="table-wrap"><table>
+    <tr><th>场景</th><th>使用 Agent？</th><th>数量</th></tr>
+    <tr><td>批量处理（10 份会议记录、20 份访谈）</td><td>✅ 是</td><td>多个（5-20+）</td></tr>
+    <tr><td>并行研究（5 个竞品、3 个市场）</td><td>✅ 是</td><td>少量（2-5）</td></tr>
+    <tr><td>多源分析（访谈 + 问卷 + 工单）</td><td>✅ 是</td><td>少量（2-4）</td></tr>
+    <tr><td>单个任务</td><td>❌ 否</td><td>0，直接用 Claude</td></tr>
+    <tr><td>依赖性顺序工作</td><td>❌ 否</td><td>0</td></tr>
+  </table></div>
+
+  <h2>🔧 如何提示 Agent</h2>
+
+  <h3>模式 1：明确请求 Agent</h3>
+  <pre>创建 10 个 Agent 来处理 /meetings 中的 10 份会议记录。
+每个 Agent 应提取：
+- 关键决策
+- 行动项
+- 障碍
+- 下一步
+
+将所有结果合并到 @周总结.md</pre>
+
+  <h3>模式 2：让 Claude 决定</h3>
+  <pre>我有 15 个竞品网站需要研究功能和定价。
+请并行处理以快速完成。</pre>
+
+  <h3>模式 3：专业化 Agent</h3>
+  <pre>启动 3 个专业化 Agent：
+- Agent 1：分析 /interviews 中的所有访谈记录
+- Agent 2：处理 @survey-results.csv 中的问卷数据
+- Agent 3：审查 /support 中的支持工单
+
+将发现综合到 @用研洞察.md</pre>
+
+  <h2>💼 真实案例</h2>
+  <h3>案例 1：会议处理</h3>
+  <p><strong>场景：</strong>周一早上，10 份会议记录，1 小时后开站会。</p>
+  <pre>我在 /meetings/last-week/ 有 10 份会议记录。
+
+创建 10 个 Agent 同时处理每份会议。
+
+对每份会议，提取：
+- 关键决策
+- 行动项（含负责人和截止日期）
+- 提到的障碍或风险
+
+将所有发现综合到 @周一站会准备.md：
+- 第 1 节：关键障碍
+- 第 2 节：关键决策
+- 第 3 节：按团队成员分列的行动项</pre>
+  <p><strong>结果：</strong>5 分钟 vs 顺序处理的 60 分钟。</p>
+
+  <h2>💡 最佳实践</h2>
+  <ul>
+    <li>明确指定：使用「并行创建 Agent」或「同时处理」</li>
+    <li>始终要求综合：原始 Agent 输出需要合并</li>
+    <li>不要过度使用 Agent：30 秒的任务不需要 Agent</li>
+  </ul>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('tasks')"><span class="label">上一页</span>← 1.3 第一个 PM 任务</button>
+    <button class="page-nav-btn next" onclick="goto('subagents')"><span class="label">下一页</span>1.5 自定义子 Agent →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     1.5 CUSTOM SUBAGENTS
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-subagents">
+  <div class="breadcrumb">模块 1：基础能力 <span>›</span> 1.5 自定义子 Agent</div>
+  <h1>1.5 自定义子 Agent</h1>
+  <div class="page-meta"><span>⏱ 20-25 分钟</span><span>前提：完成 1.4</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-1-5</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>自定义子 Agent 将 Claude Code 从单个助手变成完整的专业团队。不再需要每次说「扮演一个工程师」，你直接拥有一个有性格、有专长、有视觉标识（颜色和表情符号！）的 👨‍💻 工程师子 Agent。</div>
+
+  <h2>🎭 什么是自定义子 Agent？</h2>
+  <p>自定义子 Agent 是预配置的 AI 角色，存储为项目 <code>.claude/agents/</code> 文件夹中的文件。每个子 Agent 具有：</p>
+  <ul>
+    <li><strong>带表情符号的名称</strong>（在终端中可视化显示！）</li>
+    <li><strong>颜色编码</strong>（紫色、蓝色、绿色、红色等）</li>
+    <li><strong>角色定义</strong>（背景、专长、沟通风格）</li>
+    <li><strong>专业知识</strong>（擅长什么）</li>
+  </ul>
+
+  <h2>即时 Agent vs 自定义子 Agent</h2>
+  <div class="table-wrap"><table>
+    <tr><th>场景</th><th>使用哪个</th></tr>
+    <tr><td>同时处理 20 份会议记录</td><td>即时 Agent（并行处理）</td></tr>
+    <tr><td>每周获取技术规格反馈</td><td>自定义子 Agent（工程师）</td></tr>
+    <tr><td>一次性调研 5 个竞品</td><td>即时 Agent（一次性研究）</td></tr>
+    <tr><td>定期将更新转为高管摘要</td><td>自定义子 Agent（高管）</td></tr>
+  </table></div>
+
+  <h2>📄 子 Agent 文件结构</h2>
+  <pre># 👨‍💻 工程师
+
+## 颜色
+purple
+
+## 角色
+你是一位拥有 10 年以上顶级科技公司（Google、Meta、初创公司）经验的软件工程师。
+你深入思考技术架构、可扩展性、性能和实现细节。
+
+在分析功能或规格时，你会提供：
+- 技术可行性评估
+- 实现复杂度估算
+- 潜在挑战和边界情况
+- 性能和扩展性考量
+
+你的沟通风格：
+- 直接且务实
+- 关注技术可能性 vs 理想状态
+- 提前标记风险
+- 提出替代方案
+- 在完美主义与交付之间取得平衡
+
+## 专长
+- 系统架构和设计模式
+- API 设计和数据库 Schema
+- 性能优化和可扩展性
+- 技术可行性评估
+- 识别边界情况</pre>
+
+  <h2>🛠️ 创建你的第一个子 Agent</h2>
+  <ol>
+    <li>导航到项目的 <code>.claude/agents/</code> 文件夹</li>
+    <li>创建新文件（如 <code>qa-tester.md</code>）</li>
+    <li>按上述结构编写角色定义</li>
+    <li>保存并测试：在 Claude Code 中调用 <code>🔍 QA 测试员，审查这些用户故事</code></li>
+  </ol>
+
+  <h2>👥 预置子 Agent</h2>
+  <ul>
+    <li><strong>👨‍💻 工程师（紫色）</strong>——技术可行性审查、实现复杂度估算</li>
+    <li><strong>💼 高管（蓝色）</strong>——将更新转为高管摘要，战略业务框架</li>
+    <li><strong>👤 用研员（绿色）</strong>——分析用户访谈，识别痛点和规律</li>
+  </ul>
+
+  <h2>💼 真实使用示例</h2>
+  <pre>👨‍💻 工程师，审查 @dashboard-prd.md，识别技术挑战、性能影响和实现复杂度</pre>
+  <pre>💼 高管，将 @冲刺更新.md 转换为聚焦业务影响和指标的 3 条高管摘要</pre>
+  <pre>👤 用研员，分析 /interviews 中的所有文件，识别前 3 大痛点并附支持引用</pre>
+
+  <h2>🎯 更多子 Agent 灵感</h2>
+  <ul>
+    <li>📊 数据分析师——A/B 测试、指标、统计分析</li>
+    <li>✍️ 技术写作者——文档、帮助文章、发布说明</li>
+    <li>🎨 UX 设计师——用户流程、设计反馈、无障碍审查</li>
+    <li>🛡️ 安全专家——GDPR、SOC2、合规、数据隐私</li>
+  </ul>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('agents')"><span class="label">上一页</span>← 1.4 并行 Agent</button>
+    <button class="page-nav-btn next" onclick="goto('memory')"><span class="label">下一页</span>1.6 项目记忆 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     1.6 PROJECT MEMORY
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-memory">
+  <div class="breadcrumb">模块 1：基础能力 <span>›</span> 1.6 项目记忆</div>
+  <h1>1.6 项目记忆（CLAUDE.md）</h1>
+  <div class="page-meta"><span>⏱ 20-25 分钟</span><span>前提：完成 1.1-1.5</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-1-6</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>CLAUDE.md 是你项目的「宪法」——不可变的规则，优先级高于临时提示。写一次，Claude 在每次对话中都会了解你的产品上下文。</div>
+
+  <h2>🏛️ 什么是 CLAUDE.md？</h2>
+  <p>CLAUDE.md 是项目目录中的 Markdown 文件，包含关于产品、团队和偏好的永久上下文。Claude 在会话开始时自动读取它，并应用其中的所有内容。</p>
+
+  <h3>三个关键特性</h3>
+  <ul>
+    <li><strong>自动加载</strong>——Claude 在会话开始时自动读取</li>
+    <li><strong>持久记忆</strong>——在该目录中的所有对话中保持有效</li>
+    <li><strong>团队可共享</strong>——提交到 Git，整个团队获得相同的上下文</li>
+  </ul>
+
+  <h2>宪法与立法层级</h2>
+  <div class="table-wrap"><table>
+    <tr><th>方面</th><th>CLAUDE.md（宪法）</th><th>用户提示（立法）</th></tr>
+    <tr><td>优先级</td><td>最高，始终优先</td><td>次要，必须遵从宪法</td></tr>
+    <tr><td>持久性</td><td>永久保留</td><td>仅对当前请求有效</td></tr>
+    <tr><td>范围</td><td>适用于所有会话</td><td>仅适用于当前任务</td></tr>
+  </table></div>
+
+  <h2># 符号的作用</h2>
+  <p>在行首添加 <code>#</code> 为当前会话添加临时规则：</p>
+  <pre># 在本次会话中始终使用项目符号而非有序列表</pre>
+  <p>Claude 将此视为对话剩余时间的规则（但不影响未来会话）。用 <code>#</code> 做实验，满意后添加到 CLAUDE.md 使其永久生效。</p>
+
+  <h2>📝 CLAUDE.md 应该放什么</h2>
+  <h3>✅ 适合放入的内容</h3>
+  <ul>
+    <li><strong>产品上下文</strong>——公司概览、阶段、收入、用户数</li>
+    <li><strong>用户画像</strong>——每个关键用户角色的背景和痛点</li>
+    <li><strong>写作风格</strong>——语态、标点、段落长度偏好</li>
+    <li><strong>产品术语</strong>——「始终用 Workspace，不用 Project」</li>
+    <li><strong>不可变规则</strong>——「用户故事必须包含验收标准」</li>
+  </ul>
+  <h3>❌ 不适合放入的内容</h3>
+  <ul>
+    <li>临时指令（今天的会议记录在 xxx.txt）</li>
+    <li>经常变化的要求（当前冲刺目标）</li>
+    <li>敏感信息（API 密钥、机密数据）</li>
+  </ul>
+
+  <p><strong>判断标准：如果你希望 Claude 在 6 个月后还知道这件事，就放进 CLAUDE.md。如果下周可能改变，就用提示代替。</strong></p>
+
+  <h2>CLAUDE.md 快速入门模板</h2>
+  <pre># [产品名称] 产品上下文
+
+## 产品是什么
+[产品] 是专为 [目标用户] 打造的 [类型产品]。
+
+**公司详情：**
+- 成立时间：[年份]
+- 阶段：[融资阶段]
+- 团队：[规模]
+- 收入：[ARR 和用户数]
+
+## 写作风格与标准
+- 使用主动语态
+- 段落最多 2 句话
+- 文档中使用「我们」而非「我」
+
+## 产品术语
+始终使用以下术语：
+- [正确术语] 而非 [错误术语]
+
+## 不可变规则
+1. 用户故事必须始终包含验收标准（Given/When/Then 格式）
+2. 从不在没有用研引用的情况下撰写 PRD</pre>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('subagents')"><span class="label">上一页</span>← 1.5 自定义子 Agent</button>
+    <button class="page-nav-btn next" onclick="goto('nav')"><span class="label">下一页</span>1.7 导航与操作模式 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     1.7 NAVIGATION
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-nav">
+  <div class="breadcrumb">模块 1：基础能力 <span>›</span> 1.7 导航与操作模式</div>
+  <h1>1.7 导航与操作模式</h1>
+  <div class="page-meta"><span>⏱ 15-20 分钟</span><span>前提：完成 1.1-1.6</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-1-7</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>掌握输入模式切换、分析深度控制和减少摩擦的技巧——这是高级用户与普通用户的区别。</div>
+
+  <h2>🎛️ 三种输入模式</h2>
+  <p><strong>切换方式：</strong>按 <strong>Shift+Tab</strong> 循环切换模式。</p>
+  <div class="table-wrap"><table>
+    <tr><th>模式</th><th>行为</th><th>最适合</th></tr>
+    <tr><td><strong>编辑模式（默认）</strong></td><td>显示差异，等待批准</td><td>关键文件、学习、安全需求</td></tr>
+    <tr><td><strong>自动接受模式</strong></td><td>立即应用更改</td><td>简单任务、可信操作</td></tr>
+    <tr><td><strong>计划模式</strong></td><td>先创建结构化计划，显示待办列表</td><td>多步骤工作流、复杂研究</td></tr>
+  </table></div>
+
+  <h3>何时使用计划模式？</h3>
+  <ul>
+    <li>复杂的多步骤工作流（3 步以上）</li>
+    <li>在执行前想看到策略</li>
+    <li>研究 → 综合 → 交付物工作流</li>
+    <li>需要协调多个 Agent</li>
+  </ul>
+
+  <h2>💡 思考关键词</h2>
+  <p>在提示前加关键词可以调整分析深度：</p>
+  <div class="table-wrap"><table>
+    <tr><th>关键词</th><th>深度</th><th>使用场景</th></tr>
+    <tr><td><code>think about X</code>（思考 X）</td><td>普通</td><td>大多数任务</td></tr>
+    <tr><td><code>think harder about X</code>（深入思考 X）</td><td>更深</td><td>复杂决策</td></tr>
+    <tr><td><code>ultrathink about X</code>（超深度思考 X）</td><td>最大</td><td>极难问题（显示彩虹！）</td></tr>
+  </table></div>
+
+  <h2>⚡ 跳过权限确认</h2>
+  <pre>claude --dangerously-skip-permissions</pre>
+  <p>此标志跳过所有权限提示，Claude 无需批准即可执行命令。</p>
+  <p><strong>Carl 的强烈建议：</strong>完成第一级学习并信任 Claude Code 后使用它，速度提升是值得的。创建 Shell 别名：</p>
+  <pre>alias cc="claude --dangerously-skip-permissions"</pre>
+
+  <h2>🛑 停止执行</h2>
+  <p>随时按 <strong>Esc</strong> 停止 Claude 执行。执行立即停止，已创建的文件保留，你可以审查并决定下一步。</p>
+
+  <h2>🎉 第一级完成！</h2>
+  <p>恭喉！你已掌握所有第一级基础：</p>
+  <ul>
+    <li>✅ 文件操作（读取、写入、编辑、引用）</li>
+    <li>✅ 实时可视化工作区</li>
+    <li>✅ PM 文档处理</li>
+    <li>✅ 并行 Agent</li>
+    <li>✅ 专业子 Agent 团队</li>
+    <li>✅ 永久项目记忆（CLAUDE.md）</li>
+    <li>✅ 工作流模式选择</li>
+    <li>✅ 分析深度控制</li>
+  </ul>
+  <p><strong>预计每周节省时间：10-15 小时</strong></p>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('memory')"><span class="label">上一页</span>← 1.6 项目记忆</button>
+    <button class="page-nav-btn next" onclick="goto('prd')"><span class="label">下一页</span>2.1 编写 PRD →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     2.1 WRITE PRD
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-prd">
+  <div class="breadcrumb">模块 2：高级 PM 工作 <span>›</span> 2.1 编写 PRD</div>
+  <h1>2.1 编写 PRD</h1>
+  <div class="page-meta"><span>⏱ 45-60 分钟</span><span>前提：完成 1.4 和 1.5</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-2-1</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>当 AI 帮助你思考得更好时，而不是替你做所有思考时，它的价值最大。最好的 PRD 结合了人类判断与 AI 处理全量上下文、生成选项和提供多元视角的能力。</div>
+
+  <h2>传统方式 vs AI 协作方式</h2>
+  <div class="table-wrap"><table>
+    <tr><th>传统方式</th><th>AI 协作方式</th></tr>
+    <tr><td>打开空白文档</td><td>通过 @-引用提供全量上下文</td></tr>
+    <tr><td>独立撰写 PRD</td><td>用苏格拉底式追问厘清思路</td></tr>
+    <tr><td>分享给团队</td><td>生成多个战略方案</td></tr>
+    <tr><td>收到反馈后修改</td><td>先从子 Agent 获取反馈</td></tr>
+    <tr><td>重复循环</td><td>发出更高质量的初稿</td></tr>
+  </table></div>
+
+  <h2>四种核心技巧</h2>
+
+  <h3>1. 通过 @-引用提供全量上下文</h3>
+  <pre>帮我为 [功能] 写一份 PRD，使用：
+@公司上下文.md - 产品和客户背景
+@用研/痛点.md  - 20 次访谈的洞察
+@prd模板.md    - 我们的标准 PRD 结构
+@方法/苏格拉底.md - 清晰思考框架</pre>
+
+  <h3>2. 苏格拉底式追问</h3>
+  <div class="table-wrap"><table>
+    <tr><th>类别</th><th>关键问题</th></tr>
+    <tr><td>问题清晰度</td><td>这解决了哪个具体的用户痛点？谁受影响最深？不解决的代价是什么？</td></tr>
+    <tr><td>方案验证</td><td>为什么这是正确的方案？你考虑过哪些替代方案？最简版本是什么？</td></tr>
+    <tr><td>成功标准</td><td>如何衡量成功？失败的标志是什么？要移动哪个指标，移动多少？</td></tr>
+    <tr><td>约束条件</td><td>存在哪些技术风险？我们不做什么？时间减半要砍什么？</td></tr>
+    <tr><td>战略契合</td><td>为什么现在就要做？如何适配更大的战略？如何影响竞争地位？</td></tr>
+  </table></div>
+
+  <h3>3. 并行生成多个战略方案</h3>
+  <pre>启动 3 个 Agent 并行生成 3 份 PRD 草稿：
+- Agent 1：以聊天为核心的方案
+- Agent 2：以列表为核心的方案
+- Agent 3：平衡方案</pre>
+
+  <h3>4. 通过子 Agent 获取多视角反馈</h3>
+  <pre>从三个子 Agent 获取评审并汇总反馈：
+- 👨‍💻 工程师——技术可行性
+- 💼 高管——业务价值
+- 👤 用研员——用户需求契合度</pre>
+
+  <h2>最佳实践</h2>
+  <ul>
+    <li>从全量上下文开始（@-引用公司文档、研究、模板）</li>
+    <li>用苏格拉底式追问厘清模糊思路</li>
+    <li>生成 2-3 个战略方案，不要只用第一个想法</li>
+    <li>在分享给真实团队前先获取子 Agent 反馈</li>
+    <li>你来驱动流程——AI 提供选项，你来决策</li>
+  </ul>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('nav')"><span class="label">上一页</span>← 1.7 导航与操作模式</button>
+    <button class="page-nav-btn next" onclick="goto('data')"><span class="label">下一页</span>2.2 数据分析 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     2.2 ANALYZE DATA
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-data">
+  <div class="breadcrumb">模块 2：高级 PM 工作 <span>›</span> 2.2 数据分析</div>
+  <h1>2.2 数据分析</h1>
+  <div class="page-meta"><span>⏱ 60-75 分钟</span><span>前提：完成 2.1</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-2-2</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>永远不要停留在顶线指标——始终按目标客户细分，检查质量而非数量，寻找预测长期成功的领先指标。</div>
+
+  <h2>🎯 三阶段工作流</h2>
+  <div class="table-wrap"><table>
+    <tr><th>阶段</th><th>目的</th><th>交付物</th></tr>
+    <tr><td><strong>发现</strong></td><td>用数据发现问题（漏斗 + 问卷）</td><td>包含量化和定性证据的 <code>问题分析.md</code></td></tr>
+    <tr><td><strong>影响估算</strong></td><td>构建 ROI 模型证明开发投入合理</td><td><code>影响估算.md</code> 和含 3 个场景的 <code>roi场景.md</code></td></tr>
+    <tr><td><strong>实验分析</strong></td><td>超越顶线指标分析 A/B 测试结果</td><td>含上线/迭代/下线建议的 <code>实验报告.md</code></td></tr>
+  </table></div>
+
+  <h2>📊 影响估算框架</h2>
+  <pre>影响 = 受影响用户数 × 当前行为率 × 预期提升 × 每次行为价值</pre>
+  <ul>
+    <li><strong>受影响用户数：</strong>有多少用户会看到这个功能？考虑逐步推出（并非总是 100%）</li>
+    <li><strong>当前行为率：</strong>当前有多少比例完成期望行为？从分析工具获取</li>
+    <li><strong>预期提升：</strong>功能能将比率提升多少？来源：历史数据、竞品基准、用研</li>
+    <li><strong>每次行为价值：</strong>每个增量行为值多少？激活用户 LTV、留存 LTV 等</li>
+  </ul>
+
+  <h3>三场景方法</h3>
+  <div class="table-wrap"><table>
+    <tr><th>场景</th><th>采纳率</th><th>提升</th><th>用途</th></tr>
+    <tr><td><strong>悲观（20 百分位）</strong></td><td>30%</td><td>45% → 50%</td><td>最低预期影响</td></tr>
+    <tr><td><strong>现实（50 百分位）</strong></td><td>70%</td><td>45% → 58%</td><td>最可能情况</td></tr>
+    <tr><td><strong>乐观（80 百分位）</strong></td><td>90%</td><td>45% → 62% + 留存提升</td><td>最佳情况</td></tr>
+  </table></div>
+
+  <h2>🔬 实验分析框架</h2>
+  <ol>
+    <li><strong>顶线指标</strong>——计算对照组和实验组的整体激活率</li>
+    <li><strong>统计显著性</strong>——p &lt; 0.05 表示统计显著（随机概率 &lt; 5%）</li>
+    <li><strong>细分分析</strong>——按目标客户细分实验结果，顶线平均值可能掩盖细分市场的胜出</li>
+    <li><strong>质量指标</strong>——已激活用户中，检查第 1 周留存率</li>
+    <li><strong>领先指标</strong>——功能采用率、邀请率、参与深度</li>
+  </ol>
+
+  <h2>💼 Claude Code 数据分析</h2>
+  <pre>读取 activation-funnel-q4.csv 并计算每个步骤的流失率</pre>
+  <pre>分析 onboarding-experiment-results.csv 中的 8000 行数据，
+按公司规模细分激活率</pre>
+  <pre>按 company_size 细分实验结果，并计算各细分市场的激活率</pre>
+
+  <h2>真实案例：隐藏的胜出</h2>
+  <p><strong>场景：</strong>顶线显示 45% → 48%（+2.6pp，p=0.04），团队感到失望。</p>
+  <p><strong>分析后：</strong>小型团队 +11.4pp（巨大胜出！），企业 -3.5pp（负效果）。已激活用户的留存率：实验组 78% vs 对照组 60%。模板使用率高出 3.2 倍，邀请率 35% vs 12%。</p>
+  <p><strong>结论：</strong>表面上的失败实际上是对目标细分市场的巨大胜利。向小型团队推出，排除企业用户。</p>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('prd')"><span class="label">上一页</span>← 2.1 编写 PRD</button>
+    <button class="page-nav-btn next" onclick="goto('strategy')"><span class="label">下一页</span>2.3 产品策略 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     2.3 PRODUCT STRATEGY
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-strategy">
+  <div class="breadcrumb">模块 2：高级 PM 工作 <span>›</span> 2.3 产品策略</div>
+  <h1>2.3 产品策略</h1>
+  <div class="page-meta"><span>⏱ 60-90 分钟</span><span>前提：完成 1.4 和 1.5</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-2-3</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>AI 无法替你做战略决策，但它能帮你更快研究、严格应用框架、挑战假设、清晰表达。</div>
+
+  <h2>什么是产品策略？</h2>
+  <p>产品策略是关于把资源集中在哪里、如何创造竞争优势的一系列<strong>艰难选择</strong>。</p>
+  <div class="table-wrap"><table>
+    <tr><th>不是策略</th><th>真正的策略</th></tr>
+    <tr><td>「收入增长 50%」（目标）</td><td>「专注于 SMB 语音优先 AI，明确不与 Notion 竞争广度」（清晰选择 + 取舍）</td></tr>
+    <tr><td>「构建 AI 聊天、语音、自动化」（功能）</td><td>「在有限资源下，深入专注于一个能独特获胜的能力」</td></tr>
+    <tr><td>「成为最好的生产力工具」（愿景）</td><td>「初期补贴 AI 成本，通过使用数据和留存建立壁垒」</td></tr>
+  </table></div>
+
+  <h2>Rumelt 战略内核框架</h2>
+  <pre>┌─────────────────────────────────────────┐
+│         1. 诊断                          │
+│    挑战或机会是什么？                     │
+└─────────────────────────────────────────┘
+                   ↓
+┌─────────────────────────────────────────┐
+│       2. 指导方针                        │
+│   我们的整体方法是什么？                  │
+│   （在哪里竞争，如何获胜）               │
+└─────────────────────────────────────────┘
+                   ↓
+┌─────────────────────────────────────────┐
+│      3. 连贯行动                         │
+│   我们将采取哪些具体步骤？               │
+│   （相互强化的举措）                     │
+└─────────────────────────────────────────┘</pre>
+
+  <h2>策略开发工作流</h2>
+  <ol>
+    <li><strong>竞品研究（并行 Agent）</strong>——同时研究多个竞品</li>
+    <li><strong>战略选择</strong>——回答 5 个迫使取舍的多选题</li>
+    <li><strong>魔鬼代言人</strong>——AI 挑战你的每个选择</li>
+    <li><strong>策略综合</strong>——AI 将选择组合成完整的策略文件</li>
+    <li><strong>高管 PPT</strong>——用 pptx 技能生成高管 PPT</li>
+  </ol>
+
+  <h3>五个战略选择题</h3>
+  <div class="table-wrap"><table>
+    <tr><th>选择</th><th>选项</th></tr>
+    <tr><td>#1 专注 vs 宽度</td><td>A) 深入一个能力 B) 跨所有功能铺 AI C) 合作获取能力</td></tr>
+    <tr><td>#2 竞争响应</td><td>A) 竞速超越 B) 差异化 C) 忽略，聚焦 Roadmap</td></tr>
+    <tr><td>#3 商业模式</td><td>A) 高级 AI 分层（利润优先）B) 补贴推动采用 C) 按用量计费</td></tr>
+    <tr><td>#4 产品范围</td><td>A) AI 即产品 B) AI 即增强 C) AI 聚焦特定场景</td></tr>
+    <tr><td>#5 风险偏好</td><td>A) 快速行动，承担风险 B) 审慎且可防御 C) 等待观察</td></tr>
+  </table></div>
+
+  <h3>魔鬼代言人示例</h3>
+  <pre>用户选择：A) 深入语音
+
+魔鬼代言人响应：
+你把一切都押注在语音上。但如果语音在 6 个月内商品化呢？
+OpenAI 刚以 1/10 的成本发布了更好的语音识别。
+如果人人都有语音，你建立的策略就不再差异化了。
+凭借 2 人 AI 团队，你将没有资源转型。
+这不冒险吗？
+
+用户然后：坚持选择 OR 重新考虑</pre>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('data')"><span class="label">上一页</span>← 2.2 数据分析</button>
+    <button class="page-nav-btn next" onclick="goto('nb-setup')"><span class="label">下一页</span>3.0 Nano Banana 安装 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     3.0 NB SETUP
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-nb-setup">
+  <div class="breadcrumb">模块 3：Nano Banana <span>›</span> 3.0 安装与下载</div>
+  <h1>3.0 安装与下载</h1>
+  <div class="page-meta"><span>⏱ 5 分钟</span><span>前提：已安装 Claude Code，有 Google 账号</span></div>
+
+  <div class="callout"><strong>关于费用：</strong>Gemini 3 Pro 每张图片收费约 $0.10。完成整个课程的总费用不超过 5 美元。这笔钱支付给 Google，不是给课程作者。</div>
+
+  <h2>什么是 Nano Banana？</h2>
+  <p>Nano Banana 教你用 <strong>Gemini 3 Pro Preview</strong>（代号「Nano Banana Pro」）生成专业图片——Google 最先进的图像生成模型。但这不只是一门关于提示词的课程。</p>
+  <p><strong>这是一门 Claude Code 课程。</strong>你将学会构建一套完整的图像生成工作流，Claude Code 将：</p>
+  <ul>
+    <li>直接从终端执行生成请求</li>
+    <li>批量并行生成多张图片</li>
+    <li>管理文件——智能命名、追踪版本</li>
+    <li>构建风格库——创建和维护可复用的风格定义</li>
+    <li>与你一起迭代——优化提示词、调整参数</li>
+  </ul>
+
+  <h2>你将能创建的视觉资产</h2>
+  <ul>
+    <li>用户画像肖像和生活场景图</li>
+    <li>用户旅程图和流程可视化</li>
+    <li>线框图和设备 Mockup</li>
+    <li>架构图和策略框架</li>
+    <li>营销素材和发布图形</li>
+  </ul>
+
+  <h2>下载并启动</h2>
+  <p>打开终端并运行：</p>
+  <pre>cd ~/Documents && \
+curl -L https://github.com/carlvellotti/claude-code-pm-course/releases/latest/download/complete-course.zip -o claude-code-pm-course.zip && \
+unzip claude-code-pm-course.zip -d claude-code-pm-course && \
+cd claude-code-pm-course && \
+claude "/start-3-1-1"</pre>
+
+  <h2>备选：手动下载</h2>
+  <ol>
+    <li>从 <a href="https://github.com/carlvellotti/claude-code-pm-course/releases/latest" target="_blank">GitHub Releases 页面</a>下载 zip</li>
+    <li>解压到文稿文件夹</li>
+    <li>打开终端运行：<code>cd ~/Documents/claude-code-pm-course && claude</code></li>
+    <li>输入 <code>/start-3-1-1</code> 开始</li>
+  </ol>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('strategy')"><span class="label">上一页</span>← 2.3 产品策略</button>
+    <button class="page-nav-btn next" onclick="goto('nb-first')"><span class="label">下一页</span>3.1.1 欢迎 · 首次生成 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     3.1.1 NB FIRST GEN
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-nb-first">
+  <div class="breadcrumb">模块 3：Nano Banana <span>›</span> 3.1.1 欢迎 · 首次生成</div>
+  <h1>3.1.1 欢迎 · 首次生成</h1>
+  <div class="page-meta"><span>⏱ 10 分钟</span><span>前提：已下载 Nano Banana（模块 3.0）</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-3-1-1</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>设置是一次性流程。API 密钥配置好后，你只需用自然语言描述需求就能生成图片——Claude 处理所有技术细节。</div>
+
+  <h2>什么是 Gemini 3 Pro？</h2>
+  <p>Gemini 3 Pro 是 Google 最先进的图像生成模型，能够从文字描述生成照片级真实图像，在保留身份的同时转化参考图，添加精确的文字叠加，在多次生成中保持一致的角色，并理解和复制复杂视觉风格。</p>
+  <p>相比消费者应用，直接访问 API 的优势：更宽松的内容策略、完全参数控制、基于会话的迭代、更低成本。</p>
+
+  <h2>设置 API 密钥</h2>
+
+  <h3>步骤 1：从 Google AI Studio 获取密钥</h3>
+  <ol>
+    <li>访问 <a href="https://aistudio.google.com" target="_blank">Google AI Studio</a></li>
+    <li>用 Google 账号登录</li>
+    <li>点击左侧边栏的「Get API Key」</li>
+    <li>点击右上角「Create API key」</li>
+    <li>选择「Default Gemini Project」</li>
+    <li>复制密钥（以 <code>AIza...</code> 开头）</li>
+  </ol>
+
+  <h3>步骤 2：开通计费</h3>
+  <p>Gemini 3 Pro 需要计费账号（按用量付费，非常实惠）。在 Google AI Studio 中找到「Set up billing」并添加支付方式。</p>
+
+  <h3>步骤 3：配置 API 密钥</h3>
+  <p>直接告诉 Claude 你的 API 密钥，它会自动完成所有设置：</p>
+  <pre>我的 Gemini API 密钥是 AIzaYourKeyHere，请添加到我的 .env 文件</pre>
+
+  <h2>你的第一次生成</h2>
+  <p>设置完成后即可生成。在交互式模块中，Claude 使用一张参考照片创建有趣的欢迎图片，展示模型转换真实照片的能力。</p>
+  <p><strong>幕后发生了什么：</strong></p>
+  <ol>
+    <li>你描述想要的内容</li>
+    <li>Claude 调用 <code>image_gen.py</code> 中的 <code>generate()</code> 函数</li>
+    <li>函数将请求发送到 Gemini API</li>
+    <li>生成的图片保存到 <code>outputs/</code> 文件夹</li>
+    <li>Claude 告诉你文件在哪里</li>
+  </ol>
+  <p><strong>生成时间：</strong>约 10-15 秒/张。</p>
+
+  <h2>输出结构</h2>
+  <pre>nano-banana/
+├── outputs/
+│   ├── image_001.png
+│   ├── image_002.png
+│   └── ...
+├── image_gen.py
+├── .env
+└── ...</pre>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('nb-setup')"><span class="label">上一页</span>← 3.0 安装与下载</button>
+    <button class="page-nav-btn next" onclick="goto('nb-basics')"><span class="label">下一页</span>3.1.2 基础知识 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     3.1.2 NB BASICS
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-nb-basics">
+  <div class="breadcrumb">模块 3：Nano Banana <span>›</span> 3.1.2 基础知识</div>
+  <h1>3.1.2 基础知识</h1>
+  <div class="page-meta"><span>⏱ 15 分钟</span><span>前提：已配置 API 密钥（3.1.1）</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-3-1-2</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>你不需要记忆参数或写代码。用自然语言描述需求，Claude 选择智能默认值。但了解可能性有助于获得更好的结果。</div>
+
+  <h2>generate() 函数参数</h2>
+  <div class="table-wrap"><table>
+    <tr><th>参数</th><th>控制内容</th><th>默认值</th></tr>
+    <tr><td><code>prompt</code></td><td>你对图片的描述</td><td>必填</td></tr>
+    <tr><td><code>reference_images</code></td><td>作为视觉参考的照片</td><td>无</td></tr>
+    <tr><td><code>aspect_ratio</code></td><td>输出图片的形状</td><td>1:1</td></tr>
+    <tr><td><code>resolution</code></td><td>输出图片的尺寸/质量</td><td>1K</td></tr>
+  </table></div>
+
+  <h2>宽高比速查表</h2>
+  <div class="table-wrap"><table>
+    <tr><th>比例</th><th>形状</th><th>最适合</th></tr>
+    <tr><td>1:1</td><td>正方形</td><td>头像、Instagram 帖子、图标</td></tr>
+    <tr><td>16:9</td><td>宽横版</td><td>演示文稿、YouTube 缩略图、主视觉</td></tr>
+    <tr><td>9:16</td><td>高竖版</td><td>Instagram/抖音故事、手机壁纸</td></tr>
+    <tr><td>4:3</td><td>标准</td><td>旧式演示文稿、平板</td></tr>
+  </table></div>
+
+  <h2>分辨率策略</h2>
+  <div class="table-wrap"><table>
+    <tr><th>分辨率</th><th>尺寸</th><th>生成时间</th><th>最适合</th></tr>
+    <tr><td>1K</td><td>1024px</td><td>约 20 秒</td><td>草稿、迭代、探索</td></tr>
+    <tr><td>2K</td><td>2048px</td><td>约 30 秒</td><td>最终输出、演示</td></tr>
+    <tr><td>4K</td><td>4096px</td><td>约 45 秒</td><td>印刷、大型展示</td></tr>
+  </table></div>
+  <p><strong>建议：</strong>迭代时用 1K（更快），对最终版本满意后再用 2K 重新生成。</p>
+
+  <h2>迭代：核心工作流</h2>
+  <p>Gemini 是「思考模型」，在对话中维护上下文。当你说「让它更蓝」，它知道「它」指什么，以及你们之前讨论了什么。</p>
+  <p><strong>单次提示（令人沮丧）：</strong>生成 → 希望正确 → 不满意则从头开始</p>
+  <p><strong>迭代方式（有效）：</strong>生成初稿 → 「增加对比度」→「将文字移高」→「完美」</p>
+
+  <p><strong>何时开始新会话：</strong></p>
+  <ul>
+    <li>方向重大改变</li>
+    <li>完全不同的主题</li>
+    <li>想探索替代方案（用变体，详见 3.1.3）</li>
+  </ul>
+
+  <h2>快速参考卡</h2>
+  <pre>宽高比：
+  1:1   → 正方形（头像、图标）
+  16:9  → 横版（演示文稿）
+  9:16  → 竖版（故事、移动端）
+
+分辨率：
+  1K → 快速草稿
+  2K → 最终输出
+  4K → 仅用于印刷
+
+工作流：
+  1. 1K 生成
+  2. 迭代直到满意
+  3. 最终版 2K 重新生成</pre>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('nb-first')"><span class="label">上一页</span>← 3.1.1 欢迎 · 首次生成</button>
+    <button class="page-nav-btn next" onclick="goto('nb-style')"><span class="label">下一页</span>3.1.3 一致性与风格 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     3.1.3 CONSISTENCY & STYLE
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-nb-style">
+  <div class="breadcrumb">模块 3：Nano Banana <span>›</span> 3.1.3 一致性与风格</div>
+  <h1>3.1.3 一致性与风格</h1>
+  <div class="page-meta"><span>⏱ 20 分钟</span><span>前提：完成 3.1.2</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-3-1-3</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>好结果来自清晰的表达，而非魔法关键词。像给人类设计师做简报一样与 Gemini 交流。</div>
+
+  <h2>提示词黄金法则</h2>
+
+  <h3>法则 1：迭代，不要重来</h3>
+  <p>如果图片 80% 正确，就请求具体的修改，而不是从头开始。每次改进都给 Gemini 更多关于你想要什么的信息；重新开始则丢弃所有这些上下文。</p>
+
+  <h3>法则 2：使用自然语言和完整句子</h3>
+  <p>用自然语言和 Gemini 对话，而不是关键词堆砌。</p>
+  <p><strong>关键词堆砌（已过时）：</strong></p>
+  <pre>professional headshot, business attire, confident, studio lighting, bokeh, 8k</pre>
+  <p><strong>自然语言（更好）：</strong></p>
+  <pre>一位自信的商界高管的专业头像，在现代工作室环境中。柔和均匀的灯光营造出温暖的氛围。背景有轻微模糊，让视线聚焦在人物上。</pre>
+
+  <h3>法则 3：具体描述细节</h3>
+  <p>定义主体、场景、光线、情绪、纹理和材质。考虑颜色调色板、构图和焦点。Gemini 能处理比你想象中更多的细节。</p>
+
+  <h3>法则 4：提供上下文（「为什么」和「为谁」）</h3>
+  <p>上下文塑造创意选择。「用于儿童读物」的肖像与「用于奢侈品牌广告」的同一主体看起来完全不同。</p>
+  <pre>一片草原上的狮子，用于自然纪录片片头字幕。
+图像应让人感觉宏伟而电影化，捕捉野生动物的力量和尊严。</pre>
+
+  <h2>参考图片</h2>
+  <div class="table-wrap"><table>
+    <tr><th>类型</th><th>目的</th><th>示例</th></tr>
+    <tr><td>风格参考</td><td>捕捉视觉美学</td><td>登陆页设计、艺术风格</td></tr>
+    <tr><td>主体参考</td><td>保持角色一致性</td><td>人物照片、产品图</td></tr>
+    <tr><td>构图参考</td><td>引导布局和取景</td><td>线框图、截图</td></tr>
+  </table></div>
+
+  <h2>网格：一张图中的多个视图</h2>
+  <p>网格在单张输出中生成多张相关图片，非常适合角色设计表、产品视图或演示文稿幻灯片。</p>
+  <pre>创建一个 3x3 网格，展示 [主体] 的 9 种不同姿势：
+- 第 1 行：站立、行走、奔跑
+- 第 2 行：坐着、跳跃、招手
+- 第 3 行：思考、指向、庆祝</pre>
+
+  <h2>变体：探索不同方向</h2>
+  <p>生成 2-3 个变体，选择最好的，再迭代完善。</p>
+  <pre>生成 3 个具有不同创意诠释的 [概念] 变体</pre>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('nb-basics')"><span class="label">上一页</span>← 3.1.2 基础知识</button>
+    <button class="page-nav-btn next" onclick="goto('nb-db')"><span class="label">下一页</span>3.1.4 风格数据库 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     3.1.4 STYLE DATABASE
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-nb-db">
+  <div class="breadcrumb">模块 3：Nano Banana <span>›</span> 3.1.4 风格数据库</div>
+  <h1>3.1.4 构建风格数据库</h1>
+  <div class="page-meta"><span>⏱ 20 分钟</span><span>前提：完成 3.1.3</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-3-1-4</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>这不只是关于生成图片——而是构建一套随着每个项目越来越有价值的复利系统。</div>
+
+  <h2>元技能</h2>
+  <p>大多数人把 AI 图像工具当成新鲜玩意儿——生成一张，用一次，下次从头开始。高级用户做的不同：每次生成好的图片，保存提示词；跨项目复用；随时间构建图库。几个月后，你就拥有了一个针对各种场景的成熟风格库——一个指令：「使用风格 #12」就搞定了。</p>
+
+  <h2>你的风格库</h2>
+  <p>Nano Banana 模块包含 <code>style-library.html</code>——一个可视化风格集合的本地 HTML 文件。每条风格包含索引号、缩略图、名称、分类、标签、完整提示词和示例用途。</p>
+
+  <h2>三种扩充库的方式</h2>
+
+  <h3>方式 1：随手保存</h3>
+  <p>最简单的方式——每当你创建了满意的图片，就保存它。告诉 Claude「把这个风格添加到我的库中」，Claude 会更新 <code>style-library.html</code>。</p>
+
+  <h3>方式 2：从网上收集</h3>
+  <p>发现好的提示词就测试一下，如果效果不错就保存：</p>
+  <pre>用这个网上找到的提示词测试一下：「创建一张完全等距的照片，看起来像是恰好被拍成了等距构图。」</pre>
+
+  <h3>方式 3：从任意图片中提取（杀手锏）</h3>
+  <p>看到喜欢的图片，提取它的风格描述，然后随时复现：</p>
+  <pre>从这张图片中提取风格：[图片路径]</pre>
+  <p>Claude 会分析并返回颜色调色板、光线质量、构图、纹理、情绪和特效的详细自然语言描述。</p>
+
+  <h2>复利效应</h2>
+  <ul>
+    <li><strong>第 1 周：</strong>5 种风格，基本覆盖</li>
+    <li><strong>第 1 个月：</strong>15 种风格，开始形成规律</li>
+    <li><strong>第 3 个月：</strong>30+ 种风格，几乎无需从头开始</li>
+    <li><strong>第 1 年：</strong>50+ 种久经考验的风格，「使用风格 #23」成为你的标准工作流</li>
+  </ul>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('nb-style')"><span class="label">上一页</span>← 3.1.3 一致性与风格</button>
+    <button class="page-nav-btn next" onclick="goto('nb-users')"><span class="label">下一页</span>3.2.1 用户与产品视觉 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     3.2.1 USERS & PRODUCT VISUALS
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-nb-users">
+  <div class="breadcrumb">模块 3：Nano Banana <span>›</span> 3.2.1 用户与产品视觉</div>
+  <h1>3.2.1 用户与产品视觉</h1>
+  <div class="page-meta"><span>⏱ 25 分钟</span><span>前提：完成模块 3.1</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-3-2-1</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>掌握这五种素材类型，你几乎可以用视觉呈现任何产品故事。</div>
+
+  <h2>场景设定</h2>
+  <p>在模块 3.2 中，你是 TaskFlow（课程虚构 B2B SaaS 公司）的 PM，正在为 <strong>TaskFlow Mobile</strong>（专为制造业运营经理设计的新移动应用）做 Pitch。你的 Pitch Deck 需要五类视觉素材。</p>
+
+  <h2>1. 用户画像肖像</h2>
+  <p>用户画像肖像让抽象的用户细分变得真实，帮助相关方对你正在服务的用户产生共情。</p>
+  <p><strong>基础提示词模板：</strong></p>
+  <pre>为 [角色] [姓名] 创建用户画像肖像，在 [公司类型] 担任 [职位]。
+[年龄段]，[关键特征]。专业但平易近人的形象。用于 Pitch Deck。</pre>
+
+  <h2>2. 用户旅程图</h2>
+  <p>旅程图可视化用户随时间的体验——步骤、触点、痛点和情绪。</p>
+  <pre>创建一张展示运营经理早晨工作流的旅程图。
+阶段：到达（早 6 点）→ 审查待办 → 早间站会 → 巡查现场 → 交接准备。
+显示各阶段的痛点：信息分散、手动追踪、更新延迟。
+适合 Pitch Deck 的简洁视觉风格。16:9 宽高比。</pre>
+
+  <h2>3. 线框图转换</h2>
+  <p>将粗糙的草图转换为精致的线框图，非常适合把会议白板草图变成演示级别的图片。</p>
+  <pre>将这张手绘草图转换为精致的移动应用线框图。
+保持相同的布局：顶部问候栏、任务列表、班次概览、底部导航。
+简洁专业，灰度配色，良好的排版。移动端 9:16 比例。</pre>
+
+  <h2>4. 设备 Mockup</h2>
+  <p>将线框图或截图放入手机/笔记本电脑框架中，让数字产品感觉真实可触。</p>
+  <pre>将这张移动端线框图放入 iPhone 15 Pro Mockup。
+纯白背景，带轻微阴影。稍微倾斜的 3D 角度展示深度。专业品质。</pre>
+
+  <h2>5. 生活场景图</h2>
+  <p>展示产品在现实世界中使用的英雄图——卖出愿景的图片。</p>
+  <pre>Marcus，一位 40 多岁的运营经理，在工厂车间使用 TaskFlow Mobile。
+他自信地拿着手机，查看任务更新。背景是制造业环境：设备、工人、工业场景。
+厂房大窗户透入的自然光。构图适合作为 Pitch Deck 主视觉。</pre>
+
+  <h2>完整 Pitch Deck 示例</h2>
+  <div class="table-wrap"><table>
+    <tr><th>幻灯片</th><th>素材</th><th>故事</th></tr>
+    <tr><td>第 1 张：主视觉</td><td>Marcus 使用 TaskFlow Mobile 的生活场景图</td><td>「这是我们正在构建的未来」</td></tr>
+    <tr><td>第 2 张：用户</td><td>Marcus Chen 的用户画像肖像</td><td>「认识 Marcus——我们的目标用户」</td></tr>
+    <tr><td>第 3 张：问题</td><td>Marcus 混乱早晨的旅程图</td><td>「他当前的工作流是破碎的」</td></tr>
+    <tr><td>第 4 张：方案</td><td>TaskFlow Mobile 的精致线框图</td><td>「这是我们正在构建的」</td></tr>
+    <tr><td>第 5 张：愿景</td><td>带线框图的设备 Mockup</td><td>「口袋里的任务管理」</td></tr>
+  </table></div>
+  <p><strong>总耗时：</strong>所有五张素材约 15-20 分钟。</p>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('nb-db')"><span class="label">上一页</span>← 3.1.4 风格数据库</button>
+    <button class="page-nav-btn next" onclick="goto('nb-arch')"><span class="label">下一页</span>3.2.2 策略与架构视觉 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     3.2.2 STRATEGY & ARCH
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-nb-arch">
+  <div class="breadcrumb">模块 3：Nano Banana <span>›</span> 3.2.2 策略与架构视觉</div>
+  <h1>3.2.2 策略与架构视觉</h1>
+  <div class="page-meta"><span>⏱ 20 分钟</span><span>前提：完成 3.2.1</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-3-2-2</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>战略视觉让复杂想法瞬间清晰。一张好图表能在几秒内完成 10 分钟解释无法做到的事。</div>
+
+  <h2>场景</h2>
+  <p>TaskFlow Mobile Pitch 成功了，现在你要安排后续会议：CTO 会议（技术架构）、CEO 会议（优先级）、董事会会议（Roadmap）。每个会议需要不同类型的视觉。</p>
+
+  <h2>1. 系统架构图</h2>
+  <p>展示组件如何连接——服务、数据库、API、外部集成。</p>
+  <pre>为 TaskFlow Mobile 创建系统架构图。
+
+组件：
+- TaskFlow Mobile 应用（新功能）
+- TaskFlow 后端 API（现有）
+- PostgreSQL 数据库
+- Redis 缓存
+- Firebase（推送通知）
+- Mixpanel（分析）
+
+显示组件间的数据流箭头。
+适合 CTO 审查的简洁技术风格。16:9 宽高比。</pre>
+
+  <h2>2. 优先级矩阵</h2>
+  <p>2x2 矩阵将功能按两个维度绘图——通常是影响力 vs 工作量。</p>
+  <pre>为 TaskFlow Mobile 功能创建 2x2 优先级矩阵。
+
+X 轴：工作量（低 → 高）
+Y 轴：影响力（低 → 高）
+
+象限：快速胜出（右上）、重要项目（左上）、填充项（右下）、规避（左下）
+
+功能定位：
+快速胜出：任务更新推送通知、离线任务查看
+重要项目：跨设备实时同步、团队聊天集成
+填充项：自定义主题、小部件支持
+规避：语音指令支持、AR 任务可视化
+
+适合 CEO 演示的企业风格。正方形格式。</pre>
+
+  <h2>3. 产品 Roadmap</h2>
+  <pre>为 TaskFlow Mobile 创建覆盖 3 个季度的产品 Roadmap。
+
+Q1 - MVP 上线：核心任务管理、推送通知、离线查看
+Q2 - 团队功能：实时同步、团队聊天集成、共享任务列表
+Q3 - 企业级：管理员控制、SSO 集成、高级分析
+
+适合董事会演示的专业风格。清晰展示从 MVP 到企业级的演进。16:9 宽高比。</pre>
+
+  <h2>针对不同受众的技巧</h2>
+  <div class="table-wrap"><table>
+    <tr><th>受众</th><th>关注点</th><th>风格</th></tr>
+    <tr><td>CTO / 工程团队</td><td>集成点、数据流、技术依赖</td><td>技术但清晰</td></tr>
+    <tr><td>CEO / 领导层</td><td>战略决策、优先级取舍</td><td>简洁、高层次</td></tr>
+    <tr><td>董事会</td><td>时间线、里程碑、战略方向</td><td>专业、精致、自信</td></tr>
+  </table></div>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('nb-users')"><span class="label">上一页</span>← 3.2.1 用户与产品视觉</button>
+    <button class="page-nav-btn next" onclick="goto('nb-mkt')"><span class="label">下一页</span>3.2.3 营销与发布素材 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     3.2.3 MARKETING
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-nb-mkt">
+  <div class="breadcrumb">模块 3：Nano Banana <span>›</span> 3.2.3 营销与发布素材</div>
+  <h1>3.2.3 营销与发布素材</h1>
+  <div class="page-meta"><span>⏱ 20 分钟</span><span>前提：完成 3.2.2</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-3-2-3</code> 开始交互式体验。</div>
+
+  <div class="callout"><strong>核心要点：</strong>营销视觉瞬间传达价值。一张好的发布图形能产生文字段落无法实现的兴奋感。</div>
+
+  <h2>1. 应用商店主视觉</h2>
+  <pre>为 TaskFlow Mobile 创建应用商店主视觉。
+在现代 iPhone 上展示应用，界面显示运营团队的任务管理。
+适合 B2B 应用商店列表的专业风格。
+背景带有微妙的制造业/运营场景。16:9 宽高比。</pre>
+
+  <p><strong>不同 App 类型的风格建议：</strong></p>
+  <div class="table-wrap"><table>
+    <tr><th>App 类型</th><th>视觉感觉</th></tr>
+    <tr><td>B2B 应用</td><td>专业、简洁、功能性</td></tr>
+    <tr><td>消费者应用</td><td>充满活力、情感化、生活感</td></tr>
+    <tr><td>企业应用</td><td>值得信赖、安全、专业</td></tr>
+    <tr><td>初创公司</td><td>现代、创新、清新</td></tr>
+  </table></div>
+
+  <h2>2. 社交广告素材</h2>
+  <pre>为 TaskFlow Mobile 创建 LinkedIn 广告。
+展示前后对比：
+- 左侧：手持剪贴板、文件凌乱的运营经理
+- 右侧：同一位经理自信地使用 TaskFlow Mobile
+
+文案：从混乱到清晰。
+醒目的视觉风格，顶部留出标题文字空间。正方形格式（1:1）。</pre>
+
+  <h2>3. 发布公告图</h2>
+  <pre>为 TaskFlow Mobile 创建发布公告图形。
+概念：「隆重推出 TaskFlow Mobile」的感觉。
+应用英雄图——精致、高端。
+发布/公告能量——可以用聚光灯效果或简洁展示美学。
+兼顾专业（适合新闻稿）和兴奋感（适合社交媒体）。
+16:9 宽高比。</pre>
+
+  <h2>完整发布素材包</h2>
+  <p><strong>应用商店：</strong>主视觉（16:9）、5-6 张截图 Mockup、应用图标（如需要）</p>
+  <p><strong>社交媒体：</strong>LinkedIn 广告素材（正方形 + 横版）、Twitter/X 卡片图、Instagram 帖子 + 故事变体</p>
+  <p><strong>公告套件：</strong>新闻稿主图（16:9）、邮件头部图形、博客特色图片</p>
+  <p><strong>总耗时：</strong>完整发布素材包约 30-45 分钟。</p>
+
+  <h2>🎉 Nano Banana 课程完成！</h2>
+  <p>你现在拥有了完整的可视化工具链：从首次生成到为产品上线制作专业营销素材。</p>
+  <p><strong>你所构建的：</strong>理解最强大的图像模型 · 掌握获得优质结果的提示词原则 · 一个随着时间越来越有价值的可复用风格库 · 创建任何 PM 视觉的技能。</p>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('nb-arch')"><span class="label">上一页</span>← 3.2.2 策略与架构视觉</button>
+    <button class="page-nav-btn next" onclick="goto('vc-ov')"><span class="label">下一页</span>模块 4 概览 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     4 VIBE CODING OVERVIEW
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-vc-ov">
+  <div class="breadcrumb">模块 4：Vibe Coding <span>›</span> 模块概览</div>
+  <h1>模块 4：Vibe Coding</h1>
+  <div class="page-meta"><span>⏱ 1-2 小时</span></div>
+
+  <p>你已经学会了如何与文件协作。现在来学习如何创建文件。</p>
+  <p>在这个模块中，你将从零开始构建一个真实的 Web 应用并部署到互联网——不需要任何编程经验。你描述你想要什么，Claude 来构建，你不断优化直到满意为止。</p>
+
+  <h2>你将构建什么</h2>
+  <p>一个个性测试应用，包含：多个带自定义逻辑的问题、基于答案的个性类型结果、任何人都可以访问的线上 URL。这同样适用于落地页、工具、仪表板、原型——任何基于 Web 的内容。</p>
+
+  <h2>你将学到什么</h2>
+  <div class="table-wrap"><table>
+    <tr><th>课程</th><th>内容</th></tr>
+    <tr><td>4.1 环境搭建</td><td>Vibe Coding 思维方式和项目文件夹设置</td></tr>
+    <tr><td>4.2 规划需求</td><td>访谈流程，定义清晰的需求</td></tr>
+    <tr><td>4.3 构建与迭代</td><td>脚手架、构建，用截图反馈迭代</td></tr>
+    <tr><td>4.4 GitHub</td><td>版本控制与备份</td></tr>
+    <tr><td>4.5 上线部署</td><td>部署到 Vercel 获得真实 URL</td></tr>
+  </table></div>
+
+  <h2>下载课程材料</h2>
+  <p><strong>Mac/Linux：</strong>打开终端运行：</p>
+  <pre>cd ~/Documents && \
+curl -L https://github.com/carlvellotti/claude-code-pm-course/releases/latest/download/complete-course.zip -o claude-code-course.zip && \
+unzip -o claude-code-course.zip && \
+cd claude-code-course && \
+claude</pre>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('nb-mkt')"><span class="label">上一页</span>← 3.2.3 营销与发布素材</button>
+    <button class="page-nav-btn next" onclick="goto('vc-setup')"><span class="label">下一页</span>4.1 环境搭建 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     4.1 VC SETUP
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-vc-setup">
+  <div class="breadcrumb">模块 4：Vibe Coding <span>›</span> 4.1 环境搭建</div>
+  <h1>4.1 环境搭建</h1>
+  <div class="page-meta"><span>⏱ 10 分钟</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-4-1</code>。</div>
+
+  <h2>什么是 Vibe Coding？</h2>
+  <p>Vibe Coding 是通过描述你想要什么来构建软件的方式，而不是自己写代码。这个词由 Andrej Karpathy 推广——「完全沉浸在感觉中」。你描述结果，AI 负责实现。技能不在于编码，而在于清楚地说明你想要什么、给出好的反馈，以及判断什么时候结果是对的。</p>
+
+  <h2>PM / 工程师动态</h2>
+  <p>这就是非技术创始人与开发者真实的合作方式：</p>
+  <ul>
+    <li><strong>你的工作：</strong>知道你想要什么，给出清晰的反馈</li>
+    <li><strong>他们的工作：</strong>想办法构建它</li>
+  </ul>
+  <p>在这个模块中，你是 PM，Claude 是工程师。你描述，Claude 构建，你审查，Claude 优化。这是一种在各处通用的真实专业技能——无论与设计师、开发者、代理机构还是任何 AI 工具合作。</p>
+
+  <h2>构建循环</h2>
+  <p>每个项目都遵循相同的循环：</p>
+  <ol>
+    <li><strong>规划</strong>——明确你要构建什么</li>
+    <li><strong>构建</strong>——让 AI 创建它</li>
+    <li><strong>迭代</strong>——优化直到满意</li>
+    <li><strong>保存</strong>——备份到 GitHub</li>
+    <li><strong>上线</strong>——发布到互联网</li>
+  </ol>
+
+  <h2>关于框架和 JavaScript</h2>
+  <p>我们使用 <strong>Next.js</strong> 框架——一个预建的基础，相当于建房前的框架结构。你不需要理解它，只需知道它存在。JavaScript 是最流行的网页编程语言，Claude 会帮你写。</p>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('vc-ov')"><span class="label">上一页</span>← 模块 4 概览</button>
+    <button class="page-nav-btn next" onclick="goto('vc-plan')"><span class="label">下一页</span>4.2 规划需求 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     4.2 VC PLAN
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-vc-plan">
+  <div class="breadcrumb">模块 4：Vibe Coding <span>›</span> 4.2 规划需求</div>
+  <h1>4.2 规划需求</h1>
+  <div class="page-meta"><span>⏱ 20-25 分钟</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-4-2</code>。</div>
+
+  <div class="callout"><strong>本课内容：</strong>Claude 通过访谈创建需求规格文档。</div>
+
+  <h2>什么是需求？</h2>
+  <p>需求是在构建之前对你要构建什么的描述——就像你与构建者之间的「合同」。细节越充分，后续意外就越少。无论你与 AI 工具、开发者、设计师还是代理机构合作，这个原则都适用。模糊指令 = 出乎意料的结果。具体需求 = 你真正想要的。</p>
+
+  <h2>软件中的「逻辑」</h2>
+  <p>逻辑是行为规则，是「如果这样，那么那样」的层次。每个应用都有逻辑：如果用户点击按钮 → 显示下一个屏幕；如果答案 = A → 给个性 X 加分；如果得分最高 → 显示该结果。你用白话文定义逻辑，Claude 用代码实现它。</p>
+
+  <h2>视觉预览为什么重要</h2>
+  <p>文字是模糊的，「现代」对不同的人意味着不同的东西。看到选项比描述偏好快得多。Claude 可以生成不同视觉风格的 HTML 预览文件并在浏览器中打开，你挑选你喜欢的，或者混合多个选项的元素。</p>
+
+  <h2>REQUIREMENTS.md 文件</h2>
+  <p>本课结束时，所有决策都保存到一个文件：<code>REQUIREMENTS.md</code>，包含：你要构建什么、逻辑（如何运作）、视觉风格偏好、内容（问题、结果等）。这个文件是 Claude 在下一课中构建所依据的规格。</p>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('vc-setup')"><span class="label">上一页</span>← 4.1 环境搭建</button>
+    <button class="page-nav-btn next" onclick="goto('vc-build')"><span class="label">下一页</span>4.3 构建与迭代 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     4.3 BUILD & ITERATE
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-vc-build">
+  <div class="breadcrumb">模块 4：Vibe Coding <span>›</span> 4.3 构建与迭代</div>
+  <h1>4.3 构建与迭代</h1>
+  <div class="page-meta"><span>⏱ 30-40 分钟</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-4-3</code>。</div>
+
+  <h2>开发服务器是什么？</h2>
+  <p>开发服务器在本地运行你的代码，让你可以像网站一样预览它。它只在你的电脑上工作（非公开），需要在你查看网站时保持运行，用 <code>Ctrl+C</code> 停止。</p>
+
+  <h2>localhost 是什么？</h2>
+  <p><code>localhost</code> 表示你自己的电脑作为服务器运行。<code>localhost:3000</code> = 你电脑上的 3000 端口。这不是真实的 URL，其他人无法访问。你在 4.5 部署后才会获得真实 URL。</p>
+
+  <h2>为什么迭代很重要</h2>
+  <p>第一个版本永远不会完美——这是正常的，也是预期的。专业开发永远是：构建 → 审查 → 优化 → 重复。使用 AI 的不同之处：迭代只需几秒而非几天。所以不要将就——持续优化直到你满意为止。</p>
+
+  <h2>截图技巧</h2>
+  <p>在所有平台（包括 Mac！）用 <strong>Ctrl+V</strong> 直接粘贴图片到 Claude Code。这对迭代非常有力：截取有问题的地方 → 圈出问题或指向它 → 粘贴并描述你想要的不同效果。视觉反馈比用文字描述问题快得多。</p>
+
+  <h2>常见问题排查</h2>
+  <ul>
+    <li><strong>「npm: command not found」</strong>——未安装 Node.js，从 nodejs.org 下载安装后重启终端</li>
+    <li><strong>「Port 3000 already in use」</strong>——关闭其他可能运行服务器的终端窗口</li>
+    <li><strong>浏览器未打开</strong>——手动访问 http://localhost:3000</li>
+    <li><strong>更改未显示</strong>——刷新浏览器（<code>Cmd+Shift+R</code> 或 <code>Ctrl+Shift+R</code> 清除缓存）</li>
+  </ul>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('vc-plan')"><span class="label">上一页</span>← 4.2 规划需求</button>
+    <button class="page-nav-btn next" onclick="goto('vc-gh')"><span class="label">下一页</span>4.4 GitHub →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     4.4 GITHUB
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-vc-gh">
+  <div class="breadcrumb">模块 4：Vibe Coding <span>›</span> 4.4 GitHub</div>
+  <h1>4.4 GitHub</h1>
+  <div class="page-meta"><span>⏱ 15 分钟</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-4-4</code>。</div>
+
+  <div class="callout"><strong>本课内容：</strong>将项目推送到私有 GitHub 仓库。</div>
+
+  <h2>版本控制是什么？</h2>
+  <p>版本控制是随时间追踪文件每次更改的系统，类似「Word 中的修订追踪」，但作用于整个项目。你可以查看所有更改的历史记录，回到任何之前的版本，撤销错误——永久解决「最终版_v3_真的是最终版.docx」问题。</p>
+
+  <h2>Git vs GitHub</h2>
+  <p><strong>Git</strong> = 在你电脑上运行的版本控制系统，本地追踪更改。</p>
+  <p><strong>GitHub</strong> = 在云端存储 Git 仓库的网站。</p>
+  <p>类比：Git 是 Word（工具），GitHub 是 Google Drive（存储和分享的地方）。</p>
+
+  <h2>关键术语</h2>
+  <div class="table-wrap"><table>
+    <tr><th>术语</th><th>含义</th></tr>
+    <tr><td>仓库（repo）</td><td>被 Git 追踪的项目文件夹</td></tr>
+    <tr><td>提交（commit）</td><td>某个时间点的保存快照</td></tr>
+    <tr><td>推送（push）</td><td>从你的电脑上传提交到 GitHub</td></tr>
+    <tr><td>拉取（pull）</td><td>从 GitHub 下载更改到你的电脑</td></tr>
+  </table></div>
+
+  <h2>为什么部署需要这个</h2>
+  <p>你的代码目前只存在于你的电脑上。更重要的是：部署服务需要从某处拉取你的代码，而 GitHub 就是那个地方。下一课部署时，Vercel 会连接到你的 GitHub 仓库并自动拉取代码。</p>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('vc-build')"><span class="label">上一页</span>← 4.3 构建与迭代</button>
+    <button class="page-nav-btn next" onclick="goto('vc-live')"><span class="label">下一页</span>4.5 上线部署 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     4.5 GO LIVE
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-vc-live">
+  <div class="breadcrumb">模块 4：Vibe Coding <span>›</span> 4.5 上线部署</div>
+  <h1>4.5 上线部署</h1>
+  <div class="page-meta"><span>⏱ 15 分钟</span></div>
+  <div class="start-box">在 Claude Code 中运行 <code>/start-4-5</code>。</div>
+
+  <h2>部署是什么？</h2>
+  <p>部署是把你电脑上的代码放到互联网上的过程：你的代码 → 任何人都可以访问的服务器 → 真实 URL。开发者说「部署」、「上线」，意思都是这个。这是你的作品变成真实存在的时刻。</p>
+
+  <h2>什么是 Vercel？</h2>
+  <p>Vercel 是一个网站托管服务，个人项目免费，由 Next.js 的创建者打造，与 GitHub 集成，代码推送时自动部署。给 Vercel 你的 GitHub 仓库 → 它构建代码 → 你获得真实 URL，如 <code>yourproject.vercel.app</code>。</p>
+
+  <h2>自动部署的魔法</h2>
+  <ol>
+    <li>你将代码推送到 GitHub</li>
+    <li>Vercel 检测到更改</li>
+    <li>Vercel 自动重建并重新部署</li>
+    <li>你的线上网站约 1 分钟内更新</li>
+  </ol>
+  <p>初始设置后无需手动操作：改代码 → 推送 → 上线。</p>
+
+  <h2>🎉 完整循环</h2>
+  <p>你已经学会了：</p>
+  <div class="table-wrap"><table>
+    <tr><th>步骤</th><th>含义</th></tr>
+    <tr><td>规划</td><td>明确你要构建什么</td></tr>
+    <tr><td>构建</td><td>让 AI 创建它</td></tr>
+    <tr><td>迭代</td><td>优化直到满意</td></tr>
+    <tr><td>保存</td><td>备份到 GitHub</td></tr>
+    <tr><td>上线</td><td>发布到互联网</td></tr>
+  </table></div>
+  <p><strong>模块 4 完成！</strong>你现在掌握了完整的 Vibe Coding 工作流。尝试构建其他东西——从头开始新项目，遵循相同的循环。</p>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('vc-gh')"><span class="label">上一页</span>← 4.4 GitHub</button>
+    <button class="page-nav-btn next" onclick="goto('cowork')"><span class="label">下一页</span>Cowork 完整指南 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     COWORK
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-cowork">
+  <div class="breadcrumb">Cowork 完整指南</div>
+  <h1>Claude Cowork 完整指南</h1>
+  <div class="page-meta"><span>更新时间：2026 年 1 月</span><span>阅读时间：约 15 分钟</span><span>交互式课程：12 节</span></div>
+
+  <div class="callout"><strong>一句话定义：</strong>Claude Cowork 是面向非开发者的 Claude Code——同等强大的 AI Agent，包装在无需终端的界面中，产出真实的文件，而不是你需要复制粘贴的文字。</div>
+
+  <h2>什么是 Cowork？</h2>
+  <p>你给 Claude 访问你电脑上一个文件夹的权限，Claude 就能读取、编辑和创建该文件夹中的文件——整理下载内容、从收据中构建电子表格、将分散的笔记整理成报告等等。</p>
+  <div class="table-wrap"><table>
+    <tr><th>工具</th><th>角色</th><th>做什么</th></tr>
+    <tr><td>Claude</td><td>研究员</td><td>回答问题，做研究</td></tr>
+    <tr><td>Claude Code</td><td>CTO</td><td>编写和编辑代码</td></tr>
+    <tr><td>Claude Cowork</td><td>COO</td><td>操作你的工作生活——文件、文档、研究</td></tr>
+  </table></div>
+
+  <h2>使用要求</h2>
+  <div class="table-wrap"><table>
+    <tr><th>要求</th><th>详情</th></tr>
+    <tr><td>平台</td><td>仅 macOS（Windows 即将推出）</td></tr>
+    <tr><td>应用</td><td>Claude 桌面应用</td></tr>
+    <tr><td>订阅</td><td>Claude Pro（$20/月）</td></tr>
+    <tr><td>状态</td><td>研究预览版</td></tr>
+  </table></div>
+
+  <h2>思维方式转变</h2>
+  <blockquote>Cowork 最大的错误是把它当成有文件夹访问权限的 ChatGPT 来用。</blockquote>
+  <p><strong>错误方式：</strong>问问题 → 得到答案 → 复制粘贴到文档</p>
+  <p><strong>正确方式：</strong>描述结果 → 离开 → 回来拿完成的工作</p>
+
+  <h2>「完成」框架</h2>
+  <p>在委托任何事情之前，回答三个问题：</p>
+  <ol>
+    <li><strong>「完成」看起来是什么样子？</strong>——如果你无法想象完成后的状态，Claude 也无法想象。「创建费用报告」→「创建一个 Excel 表格，包含日期、供应商、金额、类别列，按日期排序，底部有总计」</li>
+    <li><strong>Claude 需要哪些上下文？</strong>——你的命名规范？文件夹结构偏好？工作文件和个人文件的区别？</li>
+    <li><strong>有哪些限制？</strong>——「不要删除任何文件，只是移动它们」、「只处理过去 90 天的文件」</li>
+  </ol>
+  <p><strong>最安全的默认值：</strong>除非你特别需要删除，否则始终说「不要删除任何东西」。</p>
+
+  <h2>提示词模板</h2>
+  <h3>文件整理</h3>
+  <pre>整理这个文件夹中的所有文件。根据内容将其分组到子文件夹中，
+按 [项目/客户/文件类型] 分类。在能识别日期的地方用 YYYY-MM-DD 格式
+重命名文件。不要删除任何东西。创建一份摘要文件，列出移动了什么以及移到哪里了。</pre>
+
+  <h3>研究综合</h3>
+  <pre>阅读这个文件夹中的所有文档。创建一份综合报告，总结关键发现。
+在相关处附上直接引用，包含来源文件名。标记不同来源之间的矛盾。
+最后列出仍未解答的问题。</pre>
+
+  <h3>文档创建</h3>
+  <pre>根据这个文件夹中的文件创建一份 [PowerPoint/Word/Excel]。
+使用 [具体结构或模板]。目标受众是 [谁]。
+目标是 [读者阅读后你希望他们理解或做什么]。</pre>
+
+  <h3>数据提取</h3>
+  <pre>我在这个文件夹中有 [X] 张 [收据/发票/表单] 截图。
+将数据提取到 Excel 表格中，包含 [列出列] 的列。
+按 [列] 排序，底部加总计行。标记无法处理的不清晰图片。</pre>
+
+  <h2>文件操作</h2>
+  <p>这是 Cowork 的超能力：<strong>基于内容的文件整理</strong>。普通文件整理看文件名（<code>IMG_4521.png</code> → 「图片」）。Cowork 看<strong>内容</strong>——那张 <code>IMG_4521.png</code>？Claude 能看出它实际上是咖啡供应商的收据，应该放在「收据/咖啡供应商」中。</p>
+  <p>用户已经在几分钟内整理了 300+ 个文件，包括多年混乱的下载文件夹。</p>
+
+  <h2>Cowork 能做的 25+ 件事</h2>
+  <h3>财务与行政</h3>
+  <ul>
+    <li>将 50 张收据照片转换为按类别汇总的费用电子表格</li>
+    <li>从一堆合同中提取关键日期、金额和义务</li>
+    <li>从分散的 PDF 发票创建发票摘要</li>
+    <li>从银行对账单导出数据构建预算追踪器</li>
+  </ul>
+  <h3>研究与分析</h3>
+  <ul>
+    <li>将 30 份客户访谈记录综合成主题报告</li>
+    <li>从定价、功能和评论方面对比四个供应商</li>
+    <li>分析竞品营销材料的定位洞察</li>
+    <li>从研究论文创建文献综述</li>
+  </ul>
+  <h3>内容与文档</h3>
+  <ul>
+    <li>将会议笔记转换为格式化的幻灯片</li>
+    <li>从分散的规划文档创建项目摘要</li>
+    <li>从客户支持聊天记录生成 FAQ 文档</li>
+  </ul>
+
+  <h2>Cowork vs Claude Code</h2>
+  <div class="table-wrap"><table>
+    <tr><th>方面</th><th>Claude Code</th><th>Cowork</th></tr>
+    <tr><td>界面</td><td>终端</td><td>图形界面</td></tr>
+    <tr><td>主要用途</td><td>代码/开发</td><td>其他所有工作</td></tr>
+    <tr><td>用户</td><td>开发者</td><td>所有人</td></tr>
+    <tr><td>学习曲线</td><td>较高</td><td>较低</td></tr>
+  </table></div>
+
+  <h2>安全检查清单</h2>
+  <p><strong>第一次使用前：</strong>创建专用工作文件夹（不要用 Documents 或桌面），备份你将给 Claude 访问的重要文件，决定 Claude 不允许删除什么。</p>
+  <p><strong>每次使用时：</strong>在提示词中明确约束条件，避免在工作文件夹中存放敏感文件（凭证、财务记录）。</p>
+  <p><strong>黄金法则：</strong>除非你特别需要删除，否则始终说「不要删除任何东西」。</p>
+
+  <h2>互动学习</h2>
+  <ol>
+    <li>下载课程材料 → <a href="https://ccforpms.com/cowork-complete-guide.zip" target="_blank">下载 Cowork 完整指南</a></li>
+    <li>在 Cowork 中打开文件夹 → 在 Claude 桌面应用点击「Cowork」，选择文件夹</li>
+    <li>开始学习 → 告诉 Claude：<em>「读取 START-HERE.md 并开始第 1 课」</em></li>
+  </ol>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('vc-live')"><span class="label">上一页</span>← 4.5 上线部署</button>
+    <button class="page-nav-btn next" onclick="goto('tf-co')"><span class="label">下一页</span>TaskFlow 公司概览 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     TASKFLOW COMPANY OVERVIEW
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-tf-co">
+  <div class="breadcrumb">TaskFlow 背景资料 <span>›</span> 公司概览</div>
+  <h1>TaskFlow 公司概览</h1>
+  <div class="callout">欢迎来到 TaskFlow！这是贯穿整个 Claude Code PM 课程的虚构公司。</div>
+
+  <h2>公司背景</h2>
+  <div class="table-wrap"><table>
+    <tr><th>项目</th><th>详情</th></tr>
+    <tr><td>成立时间</td><td>2021 年</td></tr>
+    <tr><td>总部</td><td>旧金山，加利福尼亚</td></tr>
+    <tr><td>融资阶段</td><td>B 轮（已融资 2000 万美元）</td></tr>
+    <tr><td>员工人数</td><td>50 人</td></tr>
+  </table></div>
+
+  <h2>团队结构</h2>
+  <ul>
+    <li><strong>产品（5 人）：</strong>Sarah Chen（产品负责人）、你（高级 PM）、Alex Rivera（移动 & 增长 PM）、2 名初级 PM</li>
+    <li><strong>工程（15 人）：</strong>Mike Rodriguez（CTO）、3 名工程负责人、12 名工程师</li>
+    <li><strong>设计（3 人）：</strong>Jordan Kim（设计负责人）、2 名产品设计师</li>
+    <li><strong>市场（20 人）：</strong>销售 8 人、市场营销 6 人、客户成功 6 人</li>
+  </ul>
+
+  <h2>使命与愿景</h2>
+  <p><strong>使命：</strong>通过智能项目管理，赋能远程团队无缝协作。</p>
+  <p><strong>愿景：</strong>成为现代远程优先公司的默认项目管理工具。</p>
+  <p><strong>价值观：</strong>用户优先、透明开放、快速行动、注重质量、远程优先。</p>
+
+  <h2>当前指标（Q4 2024）</h2>
+  <div class="table-wrap"><table>
+    <tr><th>指标</th><th>数值</th></tr>
+    <tr><td>注册用户</td><td>50,000</td></tr>
+    <tr><td>月活用户</td><td>10,000</td></tr>
+    <tr><td>日活用户</td><td>2,500</td></tr>
+    <tr><td>年经常性收入（ARR）</td><td>250 万美元</td></tr>
+    <tr><td>付费团队</td><td>500 个</td></tr>
+    <tr><td>月环比用户增长</td><td>15%</td></tr>
+    <tr><td>月环比收入增长</td><td>20%</td></tr>
+    <tr><td>激活率（注册→活跃）</td><td>45%</td></tr>
+  </table></div>
+
+  <h2>目标市场</h2>
+  <p><strong>主要：</strong>A-C 轮创业公司（50-500 人），远程优先或混合型，技术导向团队。</p>
+  <p><strong>次要：</strong>中小型企业（10-50 人），代理机构、咨询公司、创意团队。</p>
+  <p><strong>未来：</strong>企业级（500+ 人），需要 SSO、高级安全、合规。</p>
+
+  <h2>竞争格局</h2>
+  <div class="table-wrap"><table>
+    <tr><th>竞品</th><th>优势</th><th>弱势</th><th>我们的差异化</th></tr>
+    <tr><td>Asana</td><td>品牌认知、企业功能</td><td>界面复杂、价格贵</td><td>更简单、更实惠、更好的开发者体验</td></tr>
+    <tr><td>Linear</td><td>精美 UI、受开发者喜爱</td><td>专注工程、PM 不友好</td><td>更适合 PM、跨职能团队</td></tr>
+    <tr><td>Monday.com</td><td>可定制、视觉化</td><td>价格贵、选项让人不知所措</td><td>有见解的工作流、更快上手</td></tr>
+  </table></div>
+
+  <h2>2025 年战略重点</h2>
+  <ol>
+    <li><strong>移动应用上线</strong>——iOS 和 Android 原生应用，35% 用量来自移动网页（体验较差）</li>
+    <li><strong>企业级功能</strong>——SSO（SAML、OAuth）、高级权限、审计日志</li>
+    <li><strong>激活率提升</strong>——45% → 60%，更快的价值体验，更好的引导流程</li>
+  </ol>
+
+  <h2>你的角色（高级 PM）</h2>
+  <p><strong>负责领域：</strong>激活与引导、核心任务管理工作流、通知系统、集成（Slack、GitHub 等）</p>
+  <p><strong>你的目标：</strong>激活率 45% → 60%，提升首次完成任务的时间，减少首次邀请的时间（病毒式增长）</p>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('cowork')"><span class="label">上一页</span>← Cowork 完整指南</button>
+    <button class="page-nav-btn next" onclick="goto('tf-prod')"><span class="label">下一页</span>产品概览 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     TASKFLOW PRODUCT OVERVIEW
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-tf-prod">
+  <div class="breadcrumb">TaskFlow 背景资料 <span>›</span> 产品概览</div>
+  <h1>TaskFlow 产品概览</h1>
+
+  <h2>产品是什么？</h2>
+  <p>TaskFlow 是面向远程团队的项目管理 SaaS。可以把它想象成 <strong>Asana + Linear 的结合体</strong>——像 Linear 一样精美，像 Asana 一样实用，但专门为远程团队的工作方式打造。</p>
+
+  <h2>核心价值主张</h2>
+  <p>对于因工作分散和优先级不明而苦恼的远程团队，TaskFlow 提供上下文丰富的任务管理和异步协作，且价格比 Asana 低 50%。</p>
+
+  <h2>产品哲学</h2>
+  <ul>
+    <li><strong>异步优先设计</strong>——无需实时协调，支持跨时区</li>
+    <li><strong>上下文胜于状态</strong>——每个任务回答：是什么？为什么？谁做？何时？如何？</li>
+    <li><strong>速度很重要</strong>——次秒级页面加载，快捷键覆盖全功能，没有加载等待</li>
+    <li><strong>有主见但有逃生舱</strong>——强大的默认值，需要时可以定制</li>
+    <li><strong>精美且实用</strong>——好的设计引导用户走向成功</li>
+  </ul>
+
+  <h2>核心功能</h2>
+
+  <h3>1. 任务管理</h3>
+  <p>支持富文本描述（Markdown）、任务分配、截止日期与优先级标签、附件与链接、子任务、自定义字段。差异化亮点：上下文卡片（内置背景信息空间）、智能默认值（基于历史自动建议优先级和负责人）。</p>
+
+  <h3>2. 项目与组织</h3>
+  <p>支持列表、看板、日历、时间轴多种视图，自然语言智能筛选，项目状态自动计算。</p>
+
+  <h3>3. 协作</h3>
+  <p>线程化评论，AI 生成长讨论摘要，将评论标记为「决策」（后续可检索）。</p>
+
+  <h3>4. 通知</h3>
+  <p>智能批量处理多条更新，上下文通知（无需点击即可行动），时区感知（仅在工作时间发送）。</p>
+
+  <h3>5. 集成</h3>
+  <p>Slack、GitHub、Figma、Google Drive、Google 日历——双向同步，上下文自动流转。</p>
+
+  <h2>产品 Roadmap</h2>
+  <h3>已上线</h3>
+  <p>✅ 核心任务管理 · 多视图项目 · 评论与 @提及 · 基础集成（Slack、GitHub）· 邮件通知 · 自定义字段 · 搜索 · 移动端网页（响应式）</p>
+  <h3>进行中（Q4 2024 - Q1 2025）</h3>
+  <p>🚧 移动应用（iOS 和 Android）· SSO 集成 · 高级权限 · 审计日志 · 改进引导流程</p>
+  <h3>已规划（Q2-Q3 2025）</h3>
+  <p>📅 暗黑模式 · 时间追踪 · 资源管理 · 自定义工作流 · API v2</p>
+
+  <h2>定价方案</h2>
+  <div class="table-wrap"><table>
+    <tr><th>方案</th><th>价格</th><th>主要特点</th></tr>
+    <tr><td>免费版</td><td>$0</td><td>最多 10 用户，无限任务和项目，7 天活动历史</td></tr>
+    <tr><td>Pro 版</td><td>$12/用户/月</td><td>无限用户，完整历史，高级集成，自定义字段</td></tr>
+    <tr><td>企业版</td><td>定制</td><td>SSO、高级权限、审计日志、SLA 保障</td></tr>
+  </table></div>
+
+  <h2>北极星指标</h2>
+  <p><strong>每周活跃团队</strong>——每周至少完成一个任务的团队数量。当前：850 个，Q1 2025 目标：1200 个。</p>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('tf-co')"><span class="label">上一页</span>← 公司概览</button>
+    <button class="page-nav-btn next" onclick="goto('tf-pers')"><span class="label">下一页</span>用户画像 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     PERSONAS
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-tf-pers">
+  <div class="breadcrumb">TaskFlow 背景资料 <span>›</span> 用户画像</div>
+  <h1>TaskFlow 用户画像</h1>
+  <div class="callout">深入了解 TaskFlow 的用户以及他们使用产品的原因。每个产品决策都应该服务于至少一个用户画像的核心需求。</div>
+
+  <h2>画像 1：Sarah（企业管理员）</h2>
+  <div class="table-wrap"><table>
+    <tr><th>项目</th><th>详情</th></tr>
+    <tr><td>姓名</td><td>Sarah Chen，38 岁</td></tr>
+    <tr><td>职位</td><td>IT 运营副总裁</td></tr>
+    <tr><td>公司</td><td>TechCorp（800 人，C 轮）</td></tr>
+    <tr><td>TaskFlow 方案</td><td>企业版</td></tr>
+  </table></div>
+
+  <h3>背景</h3>
+  <p>Sarah 领导一家快速成长的 SaaS 公司的 IT 运营，管理 800 名员工使用的 15 个工具，年预算 200 万美元，直接汇报给 CTO。从 IT 支持专员成长到现在，拥有 CISSP 认证。</p>
+
+  <h3>目标与动机</h3>
+  <ul>
+    <li>减少工具泛滥——从 25+ 个工具整合到 10-12 个</li>
+    <li>改善安全态势——通过 SOC 2 审计</li>
+    <li>控制成本——需要对每个工具证明 ROI</li>
+    <li>赋能团队——在不妥协安全的前提下提供好工具</li>
+  </ul>
+
+  <h3>痛点</h3>
+  <ul>
+    <li>工具泛滥：工程用 Linear，市场用 Monday.com，销售用 Salesforce+Asana……</li>
+    <li>安全噩梦：影子 IT、无法看到谁有什么权限、离职员工仍可访问工具</li>
+    <li>入职/离职混乱：新员工需手动创建 25 个账号，2 天才能完成</li>
+  </ul>
+
+  <h3>关注的功能</h3>
+  <p>必备：SSO（SAML）、审计日志、高级权限、批量用户管理、管理员仪表板</p>
+  <p>不关心：花哨的 UI 动效、社交功能、移动应用</p>
+
+  <h3>标志性引言</h3>
+  <blockquote>「安全不容商量。如果你没有 SSO 和审计日志，我们甚至不会考虑你。」</blockquote>
+
+  <hr>
+
+  <h2>画像 2：Mike（IC 工程师）</h2>
+  <div class="table-wrap"><table>
+    <tr><th>项目</th><th>详情</th></tr>
+    <tr><td>姓名</td><td>Mike Rodriguez，29 岁</td></tr>
+    <tr><td>职位</td><td>高级软件工程师</td></tr>
+    <tr><td>公司</td><td>GrowthLabs（150 人，B 轮）</td></tr>
+    <tr><td>工作方式</td><td>每天编码 6-8 小时，每周 2-3 次会议</td></tr>
+  </table></div>
+
+  <h3>目标与动机</h3>
+  <ul>
+    <li>深度专注——长时间不被打断的专注工作</li>
+    <li>清晰的优先级——确切知道要做什么，无需猜测</li>
+    <li>最小化上下文切换——更少的工具，减少跳转</li>
+    <li>交付高质量代码——对工艺有自豪感</li>
+  </ul>
+
+  <h3>痛点</h3>
+  <ul>
+    <li>优先级混乱：多个「真相来源」（Slack、邮件、站会、任务工具）</li>
+    <li>上下文不足：任务标题「修复登录 bug」——哪个 bug？在哪里？为什么？</li>
+    <li>会议泛滥：站会本可以是异步的，状态更新打断了专注</li>
+    <li>工具缓慢臃肿：页面加载超过 3 秒，点击太多才能完成简单操作</li>
+  </ul>
+
+  <h3>关注的功能</h3>
+  <p>必备：快捷键、快速加载、GitHub 集成、完整 Markdown（含代码块）、任务上下文清晰</p>
+  <p>加分项：暗黑模式、离线模式</p>
+  <p>不关心：视觉项目看板、图表报表</p>
+
+  <h3>标志性引言</h3>
+  <blockquote>「只要告诉我要构建什么，给我上下文，然后让我专注写代码。不要让我去找信息或坐在会议里。」</blockquote>
+
+  <hr>
+
+  <h2>画像 3：Alex（团队负责人）</h2>
+  <div class="table-wrap"><table>
+    <tr><th>项目</th><th>详情</th></tr>
+    <tr><td>姓名</td><td>Alex Rivera，35 岁</td></tr>
+    <tr><td>职位</td><td>工程经理</td></tr>
+    <tr><td>公司</td><td>DataFlow（200 人，B 轮）</td></tr>
+    <tr><td>团队规模</td><td>8 名工程师，横跨 5 个时区</td></tr>
+  </table></div>
+
+  <h3>目标与动机</h3>
+  <ul>
+    <li>团队成功——按时交付，有质量，不过劳</li>
+    <li>清晰的可见性——无需询问即了解状态，提前发现障碍</li>
+    <li>工作量均衡——没有人超载，也没有人闲置</li>
+    <li>职业发展——培养团队成员，成长为工程总监</li>
+  </ul>
+
+  <h3>痛点</h3>
+  <ul>
+    <li>无可见性需主动询问：必须向团队成员问「你的状态怎么样？」</li>
+    <li>不断上下文切换：要看 5 个工具才能了解状态（GitHub、任务工具、Slack、Figma、Notion）</li>
+    <li>向上汇报很痛苦：领导问「我们在计划内吗？」需要 2 小时整理数据才能回答</li>
+    <li>团队负荷失衡：有人加班到深夜，有人在等待任务</li>
+  </ul>
+
+  <h3>关注的功能</h3>
+  <p>必备：团队仪表板、工作负荷视图、阻塞任务可见性、冲刺报告、评论摘要</p>
+  <p>不关心：细粒度任务详情（信任团队处理）</p>
+
+  <h3>标志性引言</h3>
+  <blockquote>「我需要知道我的团队是否在正轨上，而不必每天单独询问他人。这不可持续。」</blockquote>
+
+  <h2>画像对比矩阵</h2>
+  <div class="table-wrap"><table>
+    <tr><th>属性</th><th>Sarah（企业管理员）</th><th>Mike（IC 工程师）</th><th>Alex（团队负责人）</th></tr>
+    <tr><td>主要目标</td><td>安全与合规</td><td>深度工作与交付代码</td><td>团队生产力与交付</td></tr>
+    <tr><td>核心痛点</td><td>工具泛滥，无可见性</td><td>上下文切换，优先级不清</td><td>无团队可见性</td></tr>
+    <tr><td>技术熟练度</td><td>高（IT 背景）</td><td>非常高（工程师）</td><td>高（前工程师）</td></tr>
+    <tr><td>TaskFlow 优先功能</td><td>SSO、审计日志、权限</td><td>速度、快捷键、GitHub</td><td>仪表板、工作负荷、报告</td></tr>
+    <tr><td>购买影响力</td><td>最终决策者（预算所有者）</td><td>推荐者（影响选择）</td><td>影响者（需要成功）</td></tr>
+  </table></div>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('tf-prod')"><span class="label">上一页</span>← 产品概览</button>
+    <button class="page-nav-btn next" onclick="goto('tf-comp')"><span class="label">下一页</span>竞争格局 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     COMPETITIVE LANDSCAPE
+══════════════════════════════════════════════════ -->
+<div class="page" id="page-tf-comp">
+  <div class="breadcrumb">TaskFlow 背景资料 <span>›</span> 竞争格局</div>
+  <h1>TaskFlow 竞争格局</h1>
+
+  <h2>市场概览</h2>
+  <div class="table-wrap"><table>
+    <tr><th>项目</th><th>数据</th></tr>
+    <tr><td>市场</td><td>项目管理与协作软件</td></tr>
+    <tr><td>市场规模（TAM）</td><td>200 亿美元</td></tr>
+    <tr><td>增长速度</td><td>年均复合增长率 15%</td></tr>
+    <tr><td>关键趋势</td><td>远程工作爆发、异步协作转型、AI/自动化集成、企业软件消费化</td></tr>
+  </table></div>
+
+  <h2>竞争矩阵</h2>
+  <div class="table-wrap"><table>
+    <tr><th>竞品</th><th>成立</th><th>定价</th><th>目标市场</th><th>优势</th><th>弱势</th></tr>
+    <tr><td>Asana</td><td>2008</td><td>$13-30/用户/月</td><td>企业 + 中小企业</td><td>品牌、功能、集成</td><td>复杂、昂贵</td></tr>
+    <tr><td>Linear</td><td>2019</td><td>$8-12/用户/月</td><td>技术初创公司</td><td>精美 UI、受开发者喜爱</td><td>专注工程、功能受限</td></tr>
+    <tr><td>Monday.com</td><td>2012</td><td>$8-16/用户/月</td><td>中小企业 + 企业</td><td>可定制、视觉化</td><td>让人迷失、昂贵</td></tr>
+    <tr><td>ClickUp</td><td>2017</td><td>$7-12/用户/月</td><td>中小企业</td><td>功能丰富、一体化</td><td>界面杂乱、性能差</td></tr>
+    <tr><td>Notion</td><td>2016</td><td>$8-15/用户/月</td><td>知识工作者</td><td>灵活、一体化</td><td>非真正的项目管理</td></tr>
+    <tr><td><strong>TaskFlow</strong></td><td>2021</td><td>$12/用户/月</td><td>初创公司</td><td>均衡、异步优先</td><td>较年轻、集成较少</td></tr>
+  </table></div>
+
+  <h2>主要竞品深度分析</h2>
+
+  <h3>Asana</h3>
+  <p><strong>优势：</strong>市场领导者，品牌认知度高，200+ 集成，企业级功能完备，支持多种视图。</p>
+  <p><strong>弱势：</strong>UI 复杂，学习曲线陡峭；Business 方案 $30/用户/月；页面加载慢；功能过度工程化；工程师不喜欢。</p>
+  <p><strong>我们的差异化：</strong>更简单（更快上手）、更便宜（同等功能价格低 50%）、更快（性能更好）、更现代（更好的设计）。</p>
+  <p><strong>什么时候我们赢：</strong>厌倦复杂的初创公司、想要更好 UX 的团队、注重预算的公司、想要开发者友好工具的工程团队。</p>
+
+  <h3>Linear</h3>
+  <p><strong>优势：</strong>同类产品中最好的设计，开发者文化的最爱，闪电般的性能，最佳 GitHub 集成，有主见但不让人迷失。</p>
+  <p><strong>弱势：</strong>专注工程，不适合跨职能团队；缺少 PM 功能（无甘特图、报表有限）；集成较少。</p>
+  <p><strong>我们的差异化：</strong>跨职能（适合整个产品团队）、更多功能（甘特图、资源规划）、异步优先（更好的分布式团队支持）。</p>
+  <p><strong>什么时候我们赢：</strong>跨职能团队、PM 主导工具选择、需要 PM 专属功能、分布式团队。</p>
+
+  <h2>我们的市场定位</h2>
+  <p><strong>我们的定位：</strong>面向远程初创公司的现代项目管理工具</p>
+  <p><strong>我们的优势：</strong>均衡（不太简单也不太复杂）、异步优先 DNA（原生构建，非后来添加）、开发者和 PM 都喜欢、快速且精致。</p>
+  <p><strong>我们的劣势：</strong>只有 3 年历史，集成数量（50 vs Asana 的 200+），品牌知名度较低。</p>
+
+  <h2>赢单/败单分析（上季度）</h2>
+  <h3>我们赢了</h3>
+  <ul>
+    <li>vs Asana（12 单）：太贵、太复杂、更好的开发者体验</li>
+    <li>vs Linear（8 单）：需要跨职能功能、PM 是采购方、需要报表</li>
+    <li>vs ClickUp（10 单）：性能问题、界面杂乱、追求质量而非功能数量</li>
+  </ul>
+  <h3>我们输了</h3>
+  <ul>
+    <li>输给 Asana（5 单）：企业要求成熟供应商、已有 Asana 大量投入、特定高级功能缺失</li>
+    <li>输给 Linear（7 单）：工程团队主导选型（他们爱 Linear）、极度追求 UI 美观</li>
+    <li>输给 Notion（4 单）：偏好一体化（文档 + 任务）、已在使用 Notion 写文档</li>
+  </ul>
+
+  <h2>需要关注的竞争趋势</h2>
+  <ol>
+    <li><strong>AI 集成</strong>——所有竞品都在添加 AI 功能（Notion AI、Asana Intelligence），我们需要 AI 策略</li>
+    <li><strong>移动优先</strong>——Linear 正在打造精美移动应用，我们也需要（Q1 2025）</li>
+    <li><strong>一体化趋势</strong>——Notion、ClickUp 在扩大范围，我们该添加文档/Wiki 吗？</li>
+    <li><strong>向上拓展企业市场</strong>——Linear、Notion 都在往上走，我们也应该（SSO、权限）</li>
+  </ol>
+
+  <h2>关键结论</h2>
+  <p><strong>从竞品学什么：</strong>Linear 告诉我们 UI 质量和速度至关重要；Asana 告诉我们企业功能是向上市场的必要条件；Notion 告诉我们灵活性吸引用户。</p>
+  <p><strong>什么是我们的可持续优势：</strong>异步优先 DNA（与生俱来，非外加）、均衡定位（简洁与强大的正确结合）、快速（性能很重要）、初创公司文化契合。</p>
+
+  <div class="page-nav">
+    <button class="page-nav-btn" onclick="goto('tf-pers')"><span class="label">上一页</span>← 用户画像</button>
+    <button class="page-nav-btn next" onclick="goto('home')"><span class="label">回到首页</span>🏠 首页</button>
+  </div>
+</div>
+
+</div><!-- /content-inner -->
+</main>
+
+<script>
+// ── State ──────────────────────────────────────────
+let current = 'home';
+
+// ── Navigation ─────────────────────────────────────
+function goto(id) {
+  // hide all pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  // remove all active links
+  document.querySelectorAll('.sidebar-link, .sidebar-home-link').forEach(l => l.classList.remove('active'));
+
+  // show target page
+  const page = document.getElementById('page-' + id);
+  if (!page) return;
+  page.classList.add('active');
+
+  // activate sidebar link
+  const sl = document.getElementById('sl-' + id);
+  if (sl) sl.classList.add('active');
+
+  current = id;
+  window.scrollTo(0, 0);
+  closeSidebar();
+}
+
+// ── Sidebar ────────────────────────────────────────
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('overlay');
+  sb.classList.toggle('open');
+  ov.classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ── Collapse groups ────────────────────────────────
+function toggleGroup(id) {
+  const g = document.getElementById(id);
+  g.classList.toggle('collapsed');
+}
+
+// ── Init ───────────────────────────────────────────
+// Set group items heights for transition
+document.querySelectorAll('.sidebar-group-items').forEach(el => {
+  el.style.maxHeight = el.scrollHeight + 'px';
+});
+
+goto('home');
+</script>
+</body>
+</html>
